@@ -1,5 +1,4 @@
 ﻿using Carter;
-using CleanArchitecture.Application.Exceptions.Handler;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
@@ -16,7 +15,7 @@ public static class DependencyInjection
 
     services.AddCarter();
 
-    services.AddExceptionHandler<CustomExceptionHandler>();
+    //services.AddExceptionHandler<CustomExceptionHandler>();
     services.AddHealthChecks().AddNpgSql(config.GetConnectionString("Database")!);
 
     return services;
@@ -26,7 +25,7 @@ public static class DependencyInjection
   {
     app.MapCarter();
 
-    app.UseExceptionHandler(options => { });
+    //app.UseExceptionHandler(options => { });
     app.UseHealthChecks("health",
       new HealthCheckOptions
       {
