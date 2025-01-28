@@ -1,5 +1,6 @@
 ﻿using CleanArchitecture.Domain.RepositoryContracts.Base;
 using CleanArchitecture.Domain.RepositoryContracts.UnitOfWork;
+using CleanArchitecture.Infrastructure.Auth;
 using CleanArchitecture.Infrastructure.Data.Interceptors;
 using CleanArchitecture.Infrastructure.Repositories.Base;
 using CleanArchitecture.Infrastructure.Repositories.UnitOfWork;
@@ -14,6 +15,13 @@ public static class DependencyInjection
   public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
   {
     // Add services to the container
+    services.AddIdentityServer()
+            .AddInMemoryApiScopes(Config.ApiScopes)      // Define API scopes
+            .AddInMemoryApiResources(Config.ApiResources) // Define API resources
+            .AddInMemoryClients(Config.Clients)          // Define clients
+            .AddTestUsers(Config.TestUsers)              // Optional, if you want test users
+            .AddDeveloperSigningCredential();         // Use for dev, use a real certificate in prod
+
     services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
 
     services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>

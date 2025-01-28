@@ -1,6 +1,11 @@
 using CleanArchitecture.Application;
 using CleanArchitecture.Infrastructure;
+using CleanArchitecture.Infrastructure.Data;
 using CleanArchitecture.Presentation;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using CleanArchitecture.Domain.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +14,37 @@ builder.Services
   .AddApiServices(builder.Configuration)
   .AddInfrastructureServices(builder.Configuration)
   .AddApplicationServices(builder.Configuration);
+
+// Add identity
+builder.Services.AddIdentity<User, Role>(options =>
+{
+  options.Password.RequiredLength = 5;
+  options.Password.RequireNonAlphanumeric = false;
+  options.Password.RequireUppercase = false;
+  options.Password.RequireLowercase = false;
+  options.Password.RequireDigit = false;
+  options.Password.RequiredUniqueChars = 0;
+})
+  .AddEntityFrameworkStores<ApplicationDbContext>()
+  .AddDefaultTokenProviders()
+  .AddUserStore<UserStore<User, Role, ApplicationDbContext>>()
+  .AddRoleStore<RoleStore<Role, ApplicationDbContext>>();
+
+// Add authentication & authorization
+builder.Services.AddAuthentication("Bearer")
+  .AddJwtBearer("Bearer", options =>
+  {
+    options.Authority = "https://localhost:5005";
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+      ValidateAudience = false,
+    };
+  });
+
+builder.Services.AddAuthorization(options =>
+{
+  options.AddPolicy("ClientIdPolicy", policy => policy.RequireClaim("client_id", "client"));
+});
 
 var app = builder.Build();
 
@@ -21,6 +57,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseIdentityServer();
+
+app.UseRouting();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

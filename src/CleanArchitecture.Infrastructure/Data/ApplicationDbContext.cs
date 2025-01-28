@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using CleanArchitecture.Domain.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using System.Reflection;
 
 namespace CleanArchitecture.Infrastructure.Data;
 
@@ -8,7 +10,7 @@ public interface IApplicationDbContext
 }
 
 
-public class ApplicationDbContext : DbContext, IApplicationDbContext
+public class ApplicationDbContext : IdentityDbContext<User>, IApplicationDbContext
 {
   public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
   {
