@@ -1,8 +1,8 @@
-﻿using FluentValidation;
+﻿using CleanArchitecture.Application.Common;
+using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace CleanArchitecture.Application.Exceptions.Handler;
 
@@ -13,56 +13,65 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
     logger.LogError("Error Message: {exceptionMessage}, Time of occurence {time}",
       exception.Message, DateTime.UtcNow);
 
-    (string Detail, string Title, int StatusCode) details = exception switch
+    // Determine the status code and error details based on exception type
+    (string Message, List<string> Errors, int StatusCode) details = exception switch
     {
-      InternalServerException =>
+      ValidationException validationException =>
       (
-        exception.Message,
-        exception.GetType().Name,
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError
+          validationException.Message,
+          validationException.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}").ToList(),
+          StatusCodes.Status400BadRequest
       ),
-      ValidationException =>
+      BadRequestException badRequestException =>
       (
-        exception.Message,
-        exception.GetType().Name,
-        context.Response.StatusCode = StatusCodes.Status400BadRequest
+          badRequestException.Message,
+          new List<string> { badRequestException.Message },
+          StatusCodes.Status400BadRequest
       ),
-      BadRequestException =>
+      NotFoundException notFoundException =>
       (
-        exception.Message,
-        exception.GetType().Name,
-        context.Response.StatusCode = StatusCodes.Status400BadRequest
+          notFoundException.Message,
+          new List<string> { notFoundException.Message },
+          StatusCodes.Status404NotFound
       ),
-      NotFoundException =>
+      InternalServerException internalServerException =>
       (
-        exception.Message,
-        exception.GetType().Name,
-        context.Response.StatusCode = StatusCodes.Status404NotFound
+          internalServerException.Message,
+          new List<string> { internalServerException.Message },
+          StatusCodes.Status500InternalServerError
       ),
       _ =>
       (
-        exception.Message,
-        exception.GetType().Name,
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError
+          exception.Message,
+          new List<string> { exception.Message },
+          StatusCodes.Status500InternalServerError
       )
     };
 
-    var problemDetails = new ProblemDetails
+    // Create a wrapped API response
+    var response = new ApiResponse<object>(
+        message: details.Message,
+        errors: details.Errors
+    )
     {
-      Title = details.Title,
-      Detail = details.Detail,
-      Status = details.StatusCode,
-      Instance = context.Request.Path
+      Success = false
     };
 
-    problemDetails.Extensions.Add("traceId", context.TraceIdentifier);
+    // Set the HTTP response status code
+    context.Response.StatusCode = details.StatusCode;
+    context.Response.ContentType = "application/json";
 
-    if (exception is ValidationException validationException)
+    // Include traceId and additional debugging info (optional)
+    response.Data = new
     {
-      problemDetails.Extensions.Add("ValidationErrors", validationException.Errors);
-    }
+      TraceId = context.TraceIdentifier,
+      Path = context.Request.Path
+    };
 
-    await context.Response.WriteAsJsonAsync(problemDetails, cancellationToken: cancellationToken);
+    // Serialize and write the response
+    var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+    await context.Response.WriteAsync(jsonResponse, cancellationToken);
+
     return true;
   }
 }
