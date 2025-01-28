@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Endpoints\Auth\" />
     <Folder Include="Filters\" />
     <Folder Include="Middlewares\" />
   </ItemGroup>
