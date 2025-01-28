@@ -1,6 +1,13 @@
 ﻿namespace CleanArchitecture.Presentation.Endpoints.Admin;
 
-public class AccountController
+[Authorize(Roles = "Admin")]
+public class AccountController : ICarterModule
 {
+  public void AddRoutes(IEndpointRouteBuilder app)
+  {
+    app.MapGet("/users", async () =>
+    {
 
+    });
+  }
 }

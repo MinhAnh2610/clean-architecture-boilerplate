@@ -1,11 +1,10 @@
 using CleanArchitecture.Application;
+using CleanArchitecture.Domain.Entities;
 using CleanArchitecture.Infrastructure;
 using CleanArchitecture.Infrastructure.Data;
 using CleanArchitecture.Presentation;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using CleanArchitecture.Domain.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
