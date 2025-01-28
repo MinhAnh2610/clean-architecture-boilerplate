@@ -12,21 +12,10 @@ public class Config
       new Client
       {
         ClientId = "api_client",
-        ClientName = "Web API",
-        AllowedGrantTypes = GrantTypes.Hybrid,
-        RequirePkce = false,
-        AllowRememberConsent = false,
-        RedirectUris = new List<string>()
+        AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
+        ClientSecrets =
         {
-          "https://localhost:5002/signin-oidc"
-        },
-        PostLogoutRedirectUris = new List<string>()
-        {
-          "https://localhost:5002/signout-callback-oidc"
-        },
-        ClientSecrets = new List<Secret>
-        {
-          new Secret("secret".Sha256()),
+          new Secret("secret".Sha256())
         },
         AllowedScopes = new List<string>()
         {
@@ -36,7 +25,8 @@ public class Config
           IdentityServerConstants.StandardScopes.Email,
           "API",
           "roles"
-        }
+        },
+        AccessTokenLifetime = 3600
       }
     };
   public static IEnumerable<ApiScope> ApiScopes =>
