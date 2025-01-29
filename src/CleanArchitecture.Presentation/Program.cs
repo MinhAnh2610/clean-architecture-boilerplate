@@ -54,6 +54,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseApiServices();
+
 app.UseHttpsRedirection();
 
 app.UseIdentityServer();

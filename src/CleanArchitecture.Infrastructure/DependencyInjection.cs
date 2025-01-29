@@ -39,10 +39,6 @@ public static class DependencyInjection
     // Register Generic Repository
     services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-    // Register Specific Repositories
-
-    // Register Specific Services
-
     return services;
   }
 }

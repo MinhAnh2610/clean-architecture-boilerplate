@@ -2,16 +2,16 @@
 
 public class ApiResponse<T>
 {
-  public ApiResponse(bool isSuccess, T data = default, string message = null, List<string> errors = null)
+  public ApiResponse(bool isSuccess, T? data, string message, List<Error>? errors)
   {
     IsSuccess = isSuccess;
     Data = data;
     Message = message;
-    Errors = errors ?? new List<string>();
+    Errors = errors ?? new List<Error>();
   }
 
   public bool IsSuccess { get; set; }
-  public T Data { get; set; }
+  public T? Data { get; set; } = default;
   public string Message { get; set; }
-  public List<string> Errors { get; set; }
+  public List<Error>? Errors { get; set; } = default;
 }
