@@ -1,8 +1,8 @@
 ﻿namespace CleanArchitecture.Application.Common;
 
-public class Result
+public class Result<T>
 {
-  private Result(bool isSuccess, Error error)
+  private Result(bool isSuccess, Error error, T? data)
   {
     if (isSuccess && error != Error.None ||
         !isSuccess && error == Error.None)
@@ -12,6 +12,7 @@ public class Result
 
     IsSuccess = isSuccess;
     Error = error;
+    Data = data;
   }
 
   public bool IsSuccess { get; }
@@ -20,7 +21,9 @@ public class Result
 
   public Error Error { get; }
 
-  public static Result Success() => new(true, Error.None);
+  public T? Data { get; }
 
-  public static Result Failure(Error error) => new(false, error);
+  public static Result<T> Success(T data) => new Result<T>(true, Error.None, data);
+
+  public static Result<T> Failure(Error error) => new Result<T>(false, error, default);
 }
