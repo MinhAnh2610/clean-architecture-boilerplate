@@ -55,9 +55,48 @@ public class AuthService : IAuthService
     return Result<string>.Success(tokenResponse.AccessToken!);
   }
 
-  public Task<Result<string>> RegisterAsync(RegisterRequest registerRequest)
+  public async Task<Result<string>> RegisterAsync(RegisterRequest registerRequest)
   {
-    throw new NotImplementedException();
+    if (await _userManager.FindByEmailAsync(registerRequest.Email) != null)
+    {
+      return Result<string>.Failure(AuthErrors.AlreadyRegistered);
+    }
+    if (await _userManager.FindByEmailAsync(registerRequest.UserName) != null)
+    {
+      return Result<string>.Failure(AuthErrors.DuplicateUserName);
+    }
+
+    var user = new User { UserName = registerRequest.UserName, Email = registerRequest.Email };
+
+    var result = await _userManager.CreateAsync(user, registerRequest.Password);
+    if (!result.Succeeded)
+    {
+      return Result<string>.Failure(AuthErrors.RegistrationFailed);
+    }
+
+    var client = _httpClientFactory.CreateClient();
+    var disco = await client.GetDiscoveryDocumentAsync("https://localhost:5051/");
+    if (disco.IsError)
+    {
+      return Result<string>.Failure(AuthErrors.IdentityServerFailed);
+    }
+
+    var tokenResponse = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
+    {
+      Address = "https://localhost:5051/connect/token",
+
+      ClientId = "api_client",
+      ClientSecret = "secret",
+
+      Scope = "API"
+    });
+
+    if (tokenResponse.IsError)
+    {
+      return Result<string>.Failure(AuthErrors.TokenResponseError(tokenResponse.Error!));
+    }
+
+    return Result<string>.Success(tokenResponse.AccessToken!);
   }
 
   public Task<Result<string>> ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest)
