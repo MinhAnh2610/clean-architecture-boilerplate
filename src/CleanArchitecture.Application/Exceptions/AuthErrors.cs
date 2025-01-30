@@ -10,6 +10,8 @@ public static class AuthErrors
 
   public static readonly Error DuplicateUserName = new Error("AuthErrors.DuplicateUserName", "This username has already been taken.");
 
+  public static readonly Error NotEqualPassword = new Error("AuthErrors.NotEqualPassword", "Passwords are not the same.");
+
   public static readonly Error RegistrationFailed = new Error("AuthErrors.RegistrationFailed", "Failed to register user, pls try again later.");
 
   public static readonly Error IdentityServerFailed = new Error("AuthErrors.IdentityServerFailed", "Failed to fetch discovery document.");

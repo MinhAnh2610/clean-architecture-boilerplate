@@ -1,6 +1,8 @@
-﻿using IdentityServer4.Models;
+﻿using IdentityModel;
+using IdentityServer4.Models;
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Identity;
+using Newtonsoft.Json;
 using System.Security.Claims;
 
 namespace CleanArchitecture.Application.Validators;
@@ -36,11 +38,11 @@ public class ResourceOwnerPasswordValidator : IResourceOwnerPasswordValidator
 
     // User is valid, create claims
     var claims = new List<Claim>
-        {
-            new Claim("sub", user.Id),
-            new Claim("email", user.Email!),
-            new Claim("name", user.UserName!)
-        };
+    {
+      new Claim(JwtClaimTypes.Subject, user.Id),
+      new Claim(JwtClaimTypes.Email, user.Email!),
+      new Claim(JwtClaimTypes.Name, user.UserName!),
+    };
 
     context.Result = new GrantValidationResult(user.Id, "password", claims);
   }

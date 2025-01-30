@@ -37,8 +37,11 @@ builder.Services.AddAuthentication("Bearer")
   .AddJwtBearer("Bearer", options =>
   {
     options.Authority = "https://localhost:5051";
+    options.Audience = "API";
     options.TokenValidationParameters = new TokenValidationParameters
     {
+      NameClaimType = "name",
+      RoleClaimType = "role",
       ValidateAudience = false,
     };
   });

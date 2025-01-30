@@ -47,7 +47,7 @@ public static class DatabaseExtensions
       foreach (var user in InitialData.Users)
       {
         await userManager.CreateAsync(user, "12345");
-        await userManager.AddToRoleAsync(user, "Admin");
+        await userManager.AddToRolesAsync(user, ["Admin", "Customer"]);
       }
     }
   }

@@ -1,6 +1,7 @@
 ﻿using CleanArchitecture.Application.ServiceContracts;
 using CleanArchitecture.Application.Services;
 using CleanArchitecture.Application.Validators;
+using IdentityServer4.Services;
 using IdentityServer4.Validation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +22,7 @@ public static class DependencyInjection
 
     // Add services
     services.AddScoped<IAuthService, AuthService>();
+    services.AddScoped<IProfileService, ProfileService>();
     //services.AddScoped<IUserService, UserService>();
 
     return services;

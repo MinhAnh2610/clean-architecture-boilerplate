@@ -1,4 +1,5 @@
-﻿using CleanArchitecture.Domain.RepositoryContracts.Base;
+﻿using CleanArchitecture.Application.Services;
+using CleanArchitecture.Domain.RepositoryContracts.Base;
 using CleanArchitecture.Domain.RepositoryContracts.UnitOfWork;
 using CleanArchitecture.Infrastructure.Auth;
 using CleanArchitecture.Infrastructure.Data.Interceptors;
@@ -20,7 +21,8 @@ public static class DependencyInjection
             .AddInMemoryApiResources(Config.ApiResources) // Define API resources
             .AddInMemoryClients(Config.Clients)          // Define clients
             .AddInMemoryIdentityResources(Config.IdentityResources)
-            .AddDeveloperSigningCredential();         // Use for dev, use a real certificate in prod
+            .AddDeveloperSigningCredential()            // Use for dev, use a real certificate in prod
+            .AddProfileService<ProfileService>();         
 
     services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
 

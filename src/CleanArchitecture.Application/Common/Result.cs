@@ -2,16 +2,16 @@
 
 public class Result<T>
 {
-  private Result(bool isSuccess, Error error, T? data)
+  private Result(bool isSuccess, List<Error> errors, T? data)
   {
-    if (isSuccess && error != Error.None ||
-        !isSuccess && error == Error.None)
+    if (isSuccess && errors.Count > 0 ||
+        !isSuccess && errors.Count == 0)
     {
-      throw new ArgumentException("Invalid error", nameof(error));
+      throw new ArgumentException("Invalid error", nameof(errors));
     }
 
     IsSuccess = isSuccess;
-    Error = error;
+    Errors = errors;
     Data = data;
   }
 
@@ -19,11 +19,11 @@ public class Result<T>
 
   public bool IsFailure => !IsSuccess;
 
-  public Error Error { get; }
+  public List<Error> Errors { get; }
 
   public T? Data { get; }
 
-  public static Result<T> Success(T data) => new Result<T>(true, Error.None, data);
+  public static Result<T> Success(T data) => new Result<T>(true, new List<Error>(), data);
 
-  public static Result<T> Failure(Error error) => new Result<T>(false, error, default);
+  public static Result<T> Failure(List<Error> errors) => new Result<T>(false, errors, default);
 }

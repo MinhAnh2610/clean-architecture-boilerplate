@@ -15,7 +15,7 @@ public class AuthController : ICarterModule
       var result = await authService.LoginAsync(request);
       return result.IsSuccess
         ? Results.Ok(new ApiResponse<AuthResponse>(true, result.Data!, "Login Successfully", null))
-        : Results.BadRequest(new ApiResponse<AuthResponse>(false, null, "Login Failed", [result.Error]));
+        : Results.BadRequest(new ApiResponse<AuthResponse>(false, null, "Login Failed", result.Errors));
     })
     .WithName("Login")
     .Produces<ApiResponse<AuthResponse>>(StatusCodes.Status200OK)
@@ -30,7 +30,7 @@ public class AuthController : ICarterModule
       var result = await authService.RegisterAsync(request);
       return result.IsSuccess
           ? Results.Ok(new ApiResponse<AuthResponse>(true, result.Data!, "Register Successfully", null))
-          : Results.BadRequest(new ApiResponse<AuthResponse>(false, null, "Register Failed", [result.Error]));
+          : Results.BadRequest(new ApiResponse<AuthResponse>(false, null, "Register Failed", result.Errors));
     })
     .WithName("Register")
     .Produces<ApiResponse<AuthResponse>>(StatusCodes.Status200OK)

@@ -1,4 +1,5 @@
-﻿using IdentityServer4;
+﻿using IdentityModel;
+using IdentityServer4;
 using IdentityServer4.Models;
 using IdentityServer4.Test;
 
@@ -38,10 +39,35 @@ public class Config
   public static IEnumerable<ApiScope> ApiScopes =>
     new ApiScope[]
     {
-      new ApiScope("API", "Web API"),
+      new ApiScope("API",
+        new[]
+        {
+          JwtClaimTypes.Subject,
+          JwtClaimTypes.Profile,
+          JwtClaimTypes.Address,
+          JwtClaimTypes.Email,
+          JwtClaimTypes.Name,
+          JwtClaimTypes.Roles
+        }),
       new ApiScope(IdentityServerConstants.StandardScopes.OfflineAccess) // Enable refresh tokens
     };
-  public static IEnumerable<ApiResource> ApiResources => new ApiResource[] { };
+  public static IEnumerable<ApiResource> ApiResources =>
+    new ApiResource[]
+    {
+      new ApiResource("API")
+      {
+        Scopes = { "API" },
+        UserClaims = 
+        { 
+          JwtClaimTypes.Subject,
+          JwtClaimTypes.Profile,
+          JwtClaimTypes.Address,
+          JwtClaimTypes.Email,
+          JwtClaimTypes.Name,
+          JwtClaimTypes.Roles 
+        }
+      }
+    };
   public static IEnumerable<IdentityResource> IdentityResources =>
     new IdentityResource[]
     {
@@ -49,14 +75,8 @@ public class Config
       new IdentityResources.Profile(),
       new IdentityResources.Address(),
       new IdentityResources.Email(),
-      new IdentityResource(
-        "roles",
-        "Your role(s)",
-        new List<string>() { "role" }),
-      new IdentityResource(
-        "username",
-        "User's username",
-        new List<string>() { "username" })
+      new IdentityResource("roles", new[] { JwtClaimTypes.Roles }),
+      new IdentityResource("username", new[] { JwtClaimTypes.Name })
     };
   public static List<TestUser> TestUsers =>
     new List<TestUser>
