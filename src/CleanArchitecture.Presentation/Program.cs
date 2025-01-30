@@ -2,6 +2,7 @@ using CleanArchitecture.Application;
 using CleanArchitecture.Domain.Entities;
 using CleanArchitecture.Infrastructure;
 using CleanArchitecture.Infrastructure.Data;
+using CleanArchitecture.Infrastructure.Data.Extensions;
 using CleanArchitecture.Presentation;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -50,17 +51,18 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+  app.UseSwagger();
+  app.UseSwaggerUI();
+  await app.InitializeDatabaseAsync();
 }
 
 app.UseApiServices();
 
 app.UseHttpsRedirection();
 
-app.UseIdentityServer();
-
 app.UseRouting();
+
+app.UseIdentityServer();
 
 app.UseAuthentication();
 app.UseAuthorization();

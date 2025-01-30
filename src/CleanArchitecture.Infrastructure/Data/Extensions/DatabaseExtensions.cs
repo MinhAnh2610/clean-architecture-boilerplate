@@ -14,40 +14,41 @@ public static class DatabaseExtensions
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-    context.Database.MigrateAsync().GetAwaiter().GetResult();
+    //context.Database.MigrateAsync().GetAwaiter().GetResult();
 
     await SeedAsync(context, roleManager, userManager);
   }
 
   private static async Task SeedAsync(ApplicationDbContext context, RoleManager<Role> roleManager, UserManager<User> userManager)
   {
-    await SeedRoleAsync(roleManager);
-    await SeedUserAsync(userManager);
+    await SeedRoleAsync(context, roleManager);
+    await SeedUserAsync(context, userManager);
   }
 
-  private static async Task SeedRoleAsync(RoleManager<Role> roleManager)
+  private static async Task SeedRoleAsync(ApplicationDbContext context, RoleManager<Role> roleManager)
   {
-    foreach (var role in InitialData.Roles)
+    if (!await context.Roles.AnyAsync())
     {
-      await roleManager.CreateAsync(role);
+      //await context.Roles.AddRangeAsync(InitialData.Roles);
+      //await context.SaveChangesAsync();
+      foreach (var role in InitialData.Roles)
+      {
+        await roleManager.CreateAsync(role);
+      }
     }
   }
 
-  private static async Task SeedUserAsync(UserManager<User> userManager)
+  private static async Task SeedUserAsync(ApplicationDbContext context, UserManager<User> userManager)
   {
-    foreach (var user in InitialData.Users)
+    if (!await context.Users.AnyAsync())
     {
-      await userManager.CreateAsync(user, "12345");
-      await userManager.AddToRoleAsync(user, "Admin");
+      //await context.Users.AddRangeAsync(InitialData.Users);
+      //await context.SaveChangesAsync();
+      foreach (var user in InitialData.Users)
+      {
+        await userManager.CreateAsync(user, "12345");
+        await userManager.AddToRoleAsync(user, "Admin");
+      }
     }
   }
-
-  //private static async Task SeedUserAsync(UserManager<User> userManager)
-  //{
-  //  if (!await context.Users.AnyAsync())
-  //  {
-  //    await context.Users.AddRangeAsync(InitialData.Users);
-  //    await context.SaveChangesAsync();
-  //  }
-  //}
 }

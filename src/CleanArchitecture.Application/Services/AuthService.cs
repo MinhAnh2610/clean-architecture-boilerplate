@@ -68,7 +68,7 @@ public class AuthService : IAuthService
     {
       return Result<AuthResponse>.Failure(AuthErrors.AlreadyRegistered);
     }
-    if (await _userManager.FindByEmailAsync(registerRequest.UserName) != null)
+    if (await _userManager.FindByNameAsync(registerRequest.UserName) != null)
     {
       return Result<AuthResponse>.Failure(AuthErrors.DuplicateUserName);
     }
