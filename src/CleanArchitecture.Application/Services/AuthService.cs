@@ -1,6 +1,6 @@
-﻿using Castle.Core.Resource;
-using CleanArchitecture.Application.DTOs.Auth;
+﻿using CleanArchitecture.Application.DTOs.Auth;
 using CleanArchitecture.Application.ServiceContracts;
+using FluentValidation;
 using IdentityModel.Client;
 using Microsoft.AspNetCore.Identity;
 
@@ -10,11 +10,18 @@ public class AuthService : IAuthService
 {
   private readonly UserManager<User> _userManager;
   private readonly IHttpClientFactory _httpClientFactory;
+  private readonly IValidator<LoginRequest> _loginValidator;
+  private readonly IValidator<RegisterRequest> _registerValidator;
 
-  public AuthService(UserManager<User> userManager, IHttpClientFactory httpClientFactory)
+  public AuthService(UserManager<User> userManager, 
+                     IHttpClientFactory httpClientFactory,
+                     IValidator<LoginRequest> loginValidator,
+                     IValidator<RegisterRequest> registerValidator)
   {
     _userManager = userManager;
     _httpClientFactory = httpClientFactory;
+    _loginValidator = loginValidator;
+    _registerValidator = registerValidator;
   }
 
   public Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest forgotPasswordRequest)
@@ -24,6 +31,16 @@ public class AuthService : IAuthService
 
   public async Task<Result<AuthResponse>> LoginAsync(LoginRequest loginRequest)
   {
+    var validationResult = await _loginValidator.ValidateAsync(loginRequest);
+    if (!validationResult.IsValid)
+    {
+      var errors = validationResult.Errors
+          .Select(e => new Error("ValidationError", e.ErrorMessage))
+          .ToList();
+
+      return Result<AuthResponse>.Failure(errors);
+    }
+
     var user = await _userManager.FindByNameAsync(loginRequest.UserName);
     if (user == null || !await _userManager.CheckPasswordAsync(user, loginRequest.Password))
     {
@@ -76,9 +93,14 @@ public class AuthService : IAuthService
     {
       return Result<AuthResponse>.Failure([AuthErrors.DuplicateUserName]);
     }
-    if (!registerRequest.Password.Equals(registerRequest.PasswordConfirmation))
+    var validationResult = await _registerValidator.ValidateAsync(registerRequest);
+    if (!validationResult.IsValid)
     {
-      return Result<AuthResponse>.Failure([AuthErrors.NotEqualPassword]);
+      var errors = validationResult.Errors
+          .Select(e => new Error("ValidationError", e.ErrorMessage))
+          .ToList();
+
+      return Result<AuthResponse>.Failure(errors);
     }
 
     var user = new User { UserName = registerRequest.UserName, Email = registerRequest.Email };
