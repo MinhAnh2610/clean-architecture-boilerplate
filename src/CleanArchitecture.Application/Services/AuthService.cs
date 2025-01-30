@@ -1,6 +1,7 @@
 ﻿using CleanArchitecture.Application.DTOs.Auth;
 using CleanArchitecture.Application.ServiceContracts;
 using IdentityModel.Client;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 namespace CleanArchitecture.Application.Services;
@@ -23,7 +24,7 @@ public class AuthService : IAuthService
 
   public async Task<Result<AuthResponse>> LoginAsync(LoginRequest loginRequest)
   {
-    var user = await _userManager.FindByEmailAsync(loginRequest.Email);
+    var user = await _userManager.FindByNameAsync(loginRequest.UserName);
     if (user == null || !await _userManager.CheckPasswordAsync(user, loginRequest.Password))
     {
       return Result<AuthResponse>.Failure(AuthErrors.InvalidCredentials);
@@ -36,16 +37,19 @@ public class AuthService : IAuthService
       return Result<AuthResponse>.Failure(AuthErrors.IdentityServerFailed);
     }
 
-    var tokenResponse = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
+    var tokenResponse = await client.RequestPasswordTokenAsync(new PasswordTokenRequest
     {
-      Address = "https://localhost:5051/connect/token",
+      Address = disco.TokenEndpoint,
 
       ClientId = "api_client",
       ClientSecret = "secret",
 
-      Scope = "API"
-    });
+      UserName = "Admin123",
+      Password = "12345",
 
+      Scope = "API offline_access"
+    });
+    
     if (tokenResponse.IsError)
     {
       return Result<AuthResponse>.Failure(AuthErrors.TokenResponseError(tokenResponse.Error!));
@@ -56,8 +60,8 @@ public class AuthService : IAuthService
       AccessToken = tokenResponse.AccessToken!,
       AccessTokenExpiration = tokenResponse.ExpiresIn,
       RefreshToken = tokenResponse.RefreshToken!,
-      RefreshTokenExpiration = tokenResponse.ExpiresIn,
-      Email = loginRequest.Email!,
+      RefreshTokenExpiration = 2592000,
+      Email = user.Email!,
       UserName = user.UserName!,
     });
   }
@@ -90,14 +94,14 @@ public class AuthService : IAuthService
 
     var tokenResponse = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
     {
-      Address = "https://localhost:5051/connect/token",
+      Address = disco.TokenEndpoint,
 
       ClientId = "api_client",
       ClientSecret = "secret",
 
       Scope = "API"
     });
-
+    
     if (tokenResponse.IsError)
     {
       return Result<AuthResponse>.Failure(AuthErrors.TokenResponseError(tokenResponse.Error!));
@@ -108,7 +112,7 @@ public class AuthService : IAuthService
       AccessToken = tokenResponse.AccessToken!,
       AccessTokenExpiration = tokenResponse.ExpiresIn,
       RefreshToken = tokenResponse.RefreshToken!,
-      RefreshTokenExpiration = tokenResponse.ExpiresIn,
+      RefreshTokenExpiration = 2592000,
       Email = registerRequest.Email!,
       UserName = registerRequest.UserName!,
     });

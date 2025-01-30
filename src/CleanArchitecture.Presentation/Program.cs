@@ -24,6 +24,8 @@ builder.Services.AddIdentity<User, Role>(options =>
   options.Password.RequireLowercase = false;
   options.Password.RequireDigit = false;
   options.Password.RequiredUniqueChars = 0;
+
+  options.Lockout.AllowedForNewUsers = false;
 })
   .AddEntityFrameworkStores<ApplicationDbContext>()
   .AddDefaultTokenProviders()

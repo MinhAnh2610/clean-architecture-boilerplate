@@ -24,15 +24,22 @@ public class Config
           IdentityServerConstants.StandardScopes.Address,
           IdentityServerConstants.StandardScopes.Email,
           "API",
-          "roles"
+          "roles",
+          "offline_access"
         },
-        AccessTokenLifetime = 3600
+        AllowOfflineAccess = true,
+        AccessTokenLifetime = 3600,
+        RefreshTokenUsage = TokenUsage.ReUse,
+        RefreshTokenExpiration = TokenExpiration.Sliding,
+        AbsoluteRefreshTokenLifetime = 2592000, // 30 days
+        SlidingRefreshTokenLifetime = 1296000, // 15 days
       }
     };
   public static IEnumerable<ApiScope> ApiScopes =>
     new ApiScope[]
     {
-      new ApiScope("API", "Web API")
+      new ApiScope("API", "Web API"),
+      new ApiScope(IdentityServerConstants.StandardScopes.OfflineAccess) // Enable refresh tokens
     };
   public static IEnumerable<ApiResource> ApiResources => new ApiResource[] { };
   public static IEnumerable<IdentityResource> IdentityResources =>
@@ -45,7 +52,11 @@ public class Config
       new IdentityResource(
         "roles",
         "Your role(s)",
-        new List<string>() { "role" })
+        new List<string>() { "role" }),
+      new IdentityResource(
+        "username",
+        "User's username",
+        new List<string>() { "username" })
     };
   public static List<TestUser> TestUsers =>
     new List<TestUser>

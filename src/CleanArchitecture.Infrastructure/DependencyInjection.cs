@@ -19,7 +19,7 @@ public static class DependencyInjection
             .AddInMemoryApiScopes(Config.ApiScopes)      // Define API scopes
             .AddInMemoryApiResources(Config.ApiResources) // Define API resources
             .AddInMemoryClients(Config.Clients)          // Define clients
-            .AddTestUsers(Config.TestUsers)              // Optional, if you want test users
+            .AddInMemoryIdentityResources(Config.IdentityResources)
             .AddDeveloperSigningCredential();         // Use for dev, use a real certificate in prod
 
     services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();

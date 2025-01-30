@@ -1,5 +1,7 @@
 ﻿using CleanArchitecture.Application.ServiceContracts;
 using CleanArchitecture.Application.Services;
+using CleanArchitecture.Application.Validators;
+using IdentityServer4.Validation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
@@ -14,6 +16,8 @@ public static class DependencyInjection
 
     services.AddFeatureManagement();
 
+    // Add identity server 4 validator for owner password
+    services.AddTransient<IResourceOwnerPasswordValidator, ResourceOwnerPasswordValidator>();
 
     // Add services
     services.AddScoped<IAuthService, AuthService>();
