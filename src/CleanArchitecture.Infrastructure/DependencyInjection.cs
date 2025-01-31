@@ -3,6 +3,7 @@ using CleanArchitecture.Domain.RepositoryContracts.Base;
 using CleanArchitecture.Domain.RepositoryContracts.UnitOfWork;
 using CleanArchitecture.Infrastructure.Auth;
 using CleanArchitecture.Infrastructure.Data.Interceptors;
+using CleanArchitecture.Infrastructure.Redis;
 using CleanArchitecture.Infrastructure.Repositories.Base;
 using CleanArchitecture.Infrastructure.Repositories.UnitOfWork;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -33,6 +34,11 @@ public static class DependencyInjection
       options.UseInMemoryDatabase("Database");
     });
 
+    services.AddStackExchangeRedisCache(options =>
+    {
+      options.Configuration = configuration.GetConnectionString("Redis");
+    });
+
     //services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
 
     // Register Unit of Work
@@ -40,6 +46,9 @@ public static class DependencyInjection
 
     // Register Generic Repository
     services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+    // Register Redis Caching
+    services.AddScoped<IRedisCacheRepository, RedisCacheRepository>();
 
     return services;
   }
