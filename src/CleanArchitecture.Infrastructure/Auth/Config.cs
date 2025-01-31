@@ -25,8 +25,7 @@ public class Config
           IdentityServerConstants.StandardScopes.Address,
           IdentityServerConstants.StandardScopes.Email,
           "API",
-          "roles",
-          "offline_access"
+          "roles"
         },
         AllowOfflineAccess = true,
         AccessTokenLifetime = 3600,

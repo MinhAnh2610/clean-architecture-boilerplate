@@ -40,8 +40,6 @@ builder.Services.AddAuthentication("Bearer")
     options.Audience = "API";
     options.TokenValidationParameters = new TokenValidationParameters
     {
-      NameClaimType = "name",
-      RoleClaimType = "role",
       ValidateAudience = false,
     };
   });

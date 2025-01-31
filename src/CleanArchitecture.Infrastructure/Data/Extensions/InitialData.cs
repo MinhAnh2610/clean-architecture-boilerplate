@@ -10,7 +10,12 @@ internal class InitialData
         Id = Guid.NewGuid().ToString(), 
         UserName = "Admin123", 
         Email = "admin123@gmail.com", 
-        EmailConfirmed = true
+        EmailConfirmed = true,
+        BirthDate = new DateOnly(2000, 1, 1),
+        FirstName = "John",
+        LastName = "Doe",
+        Gender = true,
+        PhoneNumber = "1234567890"
       }
     };
 

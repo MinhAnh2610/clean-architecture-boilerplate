@@ -9,6 +9,7 @@ using CleanArchitecture.Infrastructure.Repositories.UnitOfWork;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Net.Http.Headers;
 
 namespace CleanArchitecture.Infrastructure;
 
@@ -23,7 +24,7 @@ public static class DependencyInjection
             .AddInMemoryClients(Config.Clients)          // Define clients
             .AddInMemoryIdentityResources(Config.IdentityResources)
             .AddDeveloperSigningCredential()            // Use for dev, use a real certificate in prod
-            .AddProfileService<ProfileService>();         
+            .AddProfileService<ProfileService>();
 
     services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
 
