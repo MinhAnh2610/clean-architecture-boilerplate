@@ -1,4 +1,5 @@
 ﻿using CleanArchitecture.Application.DTOs.Auth;
+using CleanArchitecture.Application.Enums;
 using CleanArchitecture.Application.ServiceContracts;
 using IdentityModel.Client;
 using Microsoft.AspNetCore.Identity;
@@ -135,7 +136,7 @@ public class AuthService : IAuthService
       var errors = result.Errors.Select(e => new Error(e.Code, e.Description)).ToList();
       return Result<AuthResponse>.Failure(errors);
     }
-    await _userManager.AddToRolesAsync(user, ["Customer"]);
+    await _userManager.AddToRolesAsync(user, [Roles.Customer]);
 
     var client = _httpClientFactory.CreateClient();
     var disco = await client.GetDiscoveryDocumentAsync("https://localhost:5051/");
