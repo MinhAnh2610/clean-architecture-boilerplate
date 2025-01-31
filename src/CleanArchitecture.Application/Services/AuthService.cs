@@ -1,6 +1,5 @@
 ﻿using CleanArchitecture.Application.DTOs.Auth;
 using CleanArchitecture.Application.ServiceContracts;
-using FluentValidation;
 using IdentityModel.Client;
 using Microsoft.AspNetCore.Identity;
 
@@ -12,21 +11,46 @@ public class AuthService : IAuthService
   private readonly IHttpClientFactory _httpClientFactory;
   private readonly IValidator<LoginRequest> _loginValidator;
   private readonly IValidator<RegisterRequest> _registerValidator;
+  private readonly IValidator<ForgotPasswordRequest> _forgotPasswordValidator;
+  private readonly IValidator<ResetPasswordRequest> _resetPasswordValidator;
 
-  public AuthService(UserManager<User> userManager, 
+  public AuthService(UserManager<User> userManager,
                      IHttpClientFactory httpClientFactory,
                      IValidator<LoginRequest> loginValidator,
-                     IValidator<RegisterRequest> registerValidator)
+                     IValidator<RegisterRequest> registerValidator,
+                     IValidator<ForgotPasswordRequest> forgotPasswordValidator,
+                     IValidator<ResetPasswordRequest> resetPasswordValidator)
   {
     _userManager = userManager;
     _httpClientFactory = httpClientFactory;
     _loginValidator = loginValidator;
     _registerValidator = registerValidator;
+    _forgotPasswordValidator = forgotPasswordValidator;
+    _resetPasswordValidator = resetPasswordValidator;
   }
 
-  public Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest forgotPasswordRequest)
+  public async Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest forgotPasswordRequest)
   {
-    throw new NotImplementedException();
+    var validationResult = await _forgotPasswordValidator.ValidateAsync(forgotPasswordRequest);
+    if (!validationResult.IsValid)
+    {
+      var errors = validationResult.Errors
+          .Select(e => new Error("ValidationError", e.ErrorMessage))
+          .ToList();
+
+      return Result<string>.Failure(errors);
+    }
+    var user = await _userManager.FindByEmailAsync(forgotPasswordRequest.Email);
+    if (user == null)
+    {
+      return Result<string>.Failure([AuthErrors.UserNotFound]);
+    }
+
+    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+    // later you need to configure the email for sending the reset token
+
+    return Result<string>.Success(token);
   }
 
   public async Task<Result<AuthResponse>> LoginAsync(LoginRequest loginRequest)
@@ -66,7 +90,7 @@ public class AuthService : IAuthService
 
       Scope = "openid profile email roles API offline_access"
     });
-    
+
     if (tokenResponse.IsError)
     {
       return Result<AuthResponse>.Failure([AuthErrors.TokenResponseError(tokenResponse.Error!)]);
@@ -108,12 +132,8 @@ public class AuthService : IAuthService
     var result = await _userManager.CreateAsync(user, registerRequest.Password);
     if (!result.Succeeded)
     {
-      List<Error> Errors = new List<Error>();
-      foreach (var error in result.Errors)
-      {
-        Errors.Add(new Error(error.Code, error.Description));
-      }
-      return Result<AuthResponse>.Failure(Errors);
+      var errors = result.Errors.Select(e => new Error(e.Code, e.Description)).ToList();
+      return Result<AuthResponse>.Failure(errors);
     }
     await _userManager.AddToRolesAsync(user, ["Customer"]);
 
@@ -153,8 +173,30 @@ public class AuthService : IAuthService
     });
   }
 
-  public Task<Result<string>> ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest)
+  public async Task<Result<string>> ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest)
   {
-    throw new NotImplementedException();
+    var validationResult = await _resetPasswordValidator.ValidateAsync(resetPasswordRequest);
+    if (!validationResult.IsValid)
+    {
+      var errors = validationResult.Errors
+          .Select(e => new Error("ValidationError", e.ErrorMessage))
+          .ToList();
+
+      return Result<string>.Failure(errors);
+    }
+    var user = await _userManager.FindByEmailAsync(resetPasswordRequest.Email);
+    if (user == null)
+    {
+      return Result<string>.Failure([AuthErrors.UserNotFound]);
+    }
+
+    var result = await _userManager.ResetPasswordAsync(user, resetPasswordRequest.AccessToken, resetPasswordRequest.Password);
+    if (!result.Succeeded)
+    {
+      var errors = result.Errors.Select(e => new Error(e.Code, e.Description)).ToList();
+      return Result<string>.Failure(errors);
+    }
+
+    return Result<string>.Success(null);
   }
 }

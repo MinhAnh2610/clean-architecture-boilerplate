@@ -1,3 +1,3 @@
 ﻿namespace CleanArchitecture.Application.DTOs.Auth;
 
-public class ForgotPasswordRequest(string Email);
+public record ForgotPasswordRequest(string Email);

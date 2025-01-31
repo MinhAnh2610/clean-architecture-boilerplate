@@ -2,9 +2,9 @@
 
 namespace CleanArchitecture.Application.Validators.Auth;
 
-public class RegisterValidator : AbstractValidator<RegisterRequest>
+public class ResetPasswordValidator : AbstractValidator<ResetPasswordRequest>
 {
-  public RegisterValidator()
+  public ResetPasswordValidator()
   {
     RuleFor(x => x.Email)
             .NotEmpty().WithMessage("Email is required.")
@@ -16,7 +16,7 @@ public class RegisterValidator : AbstractValidator<RegisterRequest>
     RuleFor(x => x.PasswordConfirmation)
         .Equal(x => x.Password).WithMessage("Passwords do not match.");
 
-    RuleFor(x => x.UserName)
-        .NotEmpty().WithMessage("Username is required.");
+    RuleFor(x => x.AccessToken)
+        .NotEmpty().WithMessage("Access token is required.");
   }
 }

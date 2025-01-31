@@ -1,5 +1,4 @@
 ﻿using CleanArchitecture.Application.DTOs.Auth;
-using FluentValidation;
 
 namespace CleanArchitecture.Application.Validators.Auth;
 

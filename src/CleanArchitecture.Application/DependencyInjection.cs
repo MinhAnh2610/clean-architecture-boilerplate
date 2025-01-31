@@ -3,8 +3,6 @@ using CleanArchitecture.Application.ServiceContracts;
 using CleanArchitecture.Application.Services;
 using CleanArchitecture.Application.Validators;
 using CleanArchitecture.Application.Validators.Auth;
-using FluentValidation;
-using FluentValidation.AspNetCore;
 using IdentityServer4.Services;
 using IdentityServer4.Validation;
 using Microsoft.Extensions.Configuration;
@@ -25,6 +23,8 @@ public static class DependencyInjection
     #region Auth Validators
     services.AddScoped<IValidator<LoginRequest>, LoginValidator>();
     services.AddScoped<IValidator<RegisterRequest>, RegisterValidator>();
+    services.AddScoped<IValidator<ForgotPasswordRequest>, ForgotPasswordValidator>();
+    services.AddScoped<IValidator<ResetPasswordRequest>, ResetPasswordValidator>();
     #endregion
 
     // Add identity server 4 validator for owner password
