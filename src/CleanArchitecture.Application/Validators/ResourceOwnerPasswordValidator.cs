@@ -2,17 +2,16 @@
 using IdentityServer4.Models;
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Identity;
-using Newtonsoft.Json;
 using System.Security.Claims;
 
 namespace CleanArchitecture.Application.Validators;
 
 public class ResourceOwnerPasswordValidator : IResourceOwnerPasswordValidator
 {
-  private readonly UserManager<User> _userManager;
+  private readonly UserManager<Domain.Entities.User> _userManager;
 
   public ResourceOwnerPasswordValidator(
-      UserManager<User> userManager)
+      UserManager<Domain.Entities.User> userManager)
   {
     _userManager = userManager;
   }

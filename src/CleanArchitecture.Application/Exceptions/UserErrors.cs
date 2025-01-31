@@ -1,6 +1,6 @@
 ﻿namespace CleanArchitecture.Application.Exceptions;
 
-public static class UserError
+public static class UserErrors
 {
   public static readonly Error UnauthorizedUser = new Error("UserErrors.UnauthorizedUser", "User is not auhenticated.");
 

@@ -2,7 +2,7 @@
 
 public class User : IdentityUser
 {
-  public DateOnly? BirthDate { get; set; }
+  public DateOnly? BirthDate { get; set; } = new DateOnly();
   public string? FirstName { get; set; }
   public string? LastName { get; set; }
   public bool Gender { get; set; } = true;

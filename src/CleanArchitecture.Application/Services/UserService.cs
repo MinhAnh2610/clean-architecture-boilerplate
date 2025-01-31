@@ -1,10 +1,9 @@
 ﻿using CleanArchitecture.Application.DTOs.User;
 using CleanArchitecture.Application.ServiceContracts;
+using CleanArchitecture.Application.Validators.Auth;
 using IdentityModel;
-using IdentityModel.Client;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
 namespace CleanArchitecture.Application.Services;
@@ -12,13 +11,16 @@ namespace CleanArchitecture.Application.Services;
 public class UserService : IUserService
 {
   private readonly IHttpContextAccessor _httpContextAccessor;
-  private readonly IHttpClientFactory _httpClientFactory;
+  private readonly UserManager<User> _userManager;
+  private readonly IValidator<UpdateProfileRequest> _updateProfileValidator;
 
   public UserService(IHttpContextAccessor httpContextAccessor, 
-                     IHttpClientFactory httpClientFactory)
+                     UserManager<User> userManager, 
+                     IValidator<UpdateProfileRequest> updateProfileValidator)
   {
     _httpContextAccessor = httpContextAccessor;
-    _httpClientFactory = httpClientFactory;
+    _userManager = userManager;
+    _updateProfileValidator = updateProfileValidator;
   }
 
   public async Task<Result<UserProfileResponse>> GetUserProfile()
@@ -26,7 +28,7 @@ public class UserService : IUserService
     var user = _httpContextAccessor.HttpContext?.User;
     if (user == null || !user.Identity!.IsAuthenticated)
     {
-      return Result<UserProfileResponse>.Failure([UserError.UnauthorizedUser]);
+      return Result<UserProfileResponse>.Failure([UserErrors.UnauthorizedUser]);
     }
 
     var id = user.FindFirst(ClaimTypes.NameIdentifier)!.Value;
@@ -53,8 +55,59 @@ public class UserService : IUserService
     });
   }
 
-  public Task<Result<UserProfileResponse>> UpdateUserProfileAsync(UpdateProfileRequest updateProfileRequest)
+  public async Task<Result<UserProfileResponse>> UpdateUserProfileAsync(UpdateProfileRequest updateProfileRequest)
   {
-    throw new NotImplementedException();
+    var validationResult = await _updateProfileValidator.ValidateAsync(updateProfileRequest);
+    if (!validationResult.IsValid)
+    {
+      var errors = validationResult.Errors
+          .Select(e => new Error("ValidationError", e.ErrorMessage))
+          .ToList();
+
+      return Result<UserProfileResponse>.Failure(errors);
+    }
+
+    var authorizedUser = _httpContextAccessor.HttpContext?.User;
+    if (authorizedUser == null || !authorizedUser.Identity!.IsAuthenticated)
+    {
+      return Result<UserProfileResponse>.Failure([UserErrors.UnauthorizedUser]);
+    }
+    var id = authorizedUser.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+    var roles = authorizedUser.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+
+    var user = await _userManager.FindByIdAsync(id);
+    if (user == null)
+      return Result<UserProfileResponse>.Failure([AuthErrors.UserNotFound]);
+
+    user.UserName = updateProfileRequest.UserName ?? user.UserName;
+    var duplicateUser = await _userManager.FindByNameAsync(user.UserName!);
+    if (duplicateUser != null && duplicateUser.Id != user.Id)
+      return Result<UserProfileResponse>.Failure([AuthErrors.DuplicateUserName]);
+
+    user.PhoneNumber = updateProfileRequest.PhoneNumber ?? user.PhoneNumber;
+    user.BirthDate = updateProfileRequest.BirthDate ?? user.BirthDate;
+    user.FirstName = updateProfileRequest.FirstName ?? user.FirstName;
+    user.LastName = updateProfileRequest.LastName ?? user.LastName; 
+    user.Gender = updateProfileRequest.Gender ?? user.Gender;
+
+    var result = await _userManager.UpdateAsync(user);
+    if (!result.Succeeded)
+    {
+      var errors = result.Errors.Select(e => new Error(e.Code, e.Description)).ToList();
+      return Result<UserProfileResponse>.Failure(errors);
+    }
+
+    return Result<UserProfileResponse>.Success(new UserProfileResponse
+    {
+      Id = id,
+      UserName = user.UserName!,
+      Email = user.Email!,
+      PhoneNumber = user.PhoneNumber,
+      BirthDate = user.BirthDate,
+      FirstName = user.FirstName,
+      LastName = user.LastName,
+      Gender = user.Gender,
+      Roles = roles
+    });
   }
 }

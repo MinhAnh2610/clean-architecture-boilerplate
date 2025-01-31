@@ -1,8 +1,10 @@
 ﻿using CleanArchitecture.Application.DTOs.Auth;
+using CleanArchitecture.Application.DTOs.User;
 using CleanArchitecture.Application.ServiceContracts;
 using CleanArchitecture.Application.Services;
 using CleanArchitecture.Application.Validators;
 using CleanArchitecture.Application.Validators.Auth;
+using CleanArchitecture.Application.Validators.User;
 using IdentityServer4.Services;
 using IdentityServer4.Validation;
 using Microsoft.Extensions.Configuration;
@@ -26,6 +28,10 @@ public static class DependencyInjection
     services.AddScoped<IValidator<RegisterRequest>, RegisterValidator>();
     services.AddScoped<IValidator<ForgotPasswordRequest>, ForgotPasswordValidator>();
     services.AddScoped<IValidator<ResetPasswordRequest>, ResetPasswordValidator>();
+    #endregion
+
+    #region User Validators
+    services.AddScoped<IValidator<UpdateProfileRequest>, UpdateProfileValidator>();
     #endregion
 
     // Add identity server 4 validator for owner password
