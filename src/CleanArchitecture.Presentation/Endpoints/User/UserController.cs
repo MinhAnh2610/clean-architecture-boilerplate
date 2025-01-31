@@ -1,11 +1,13 @@
 ﻿using CleanArchitecture.Application.DTOs.User;
 using CleanArchitecture.Application.ServiceContracts;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace CleanArchitecture.Presentation.Endpoints.User;
 
 public class UserController : ICarterModule
 {
-  [Authorize]
   public void AddRoutes(IEndpointRouteBuilder app)
   {
     var group = app.MapGroup("api/user").WithTags("User Management");
@@ -21,8 +23,10 @@ public class UserController : ICarterModule
     .WithName("UserProfile")
     .Produces<ApiResponse<UserProfileResponse>>(StatusCodes.Status200OK)
     .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status401Unauthorized)
     .WithSummary("UserProfile")
-    .WithDescription("Get User Profile");
+    .WithDescription("Get User Profile")
+    .RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme });
     #endregion
   }
 }

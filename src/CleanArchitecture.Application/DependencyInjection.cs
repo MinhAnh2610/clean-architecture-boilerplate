@@ -18,6 +18,7 @@ public static class DependencyInjection
   {
 
     services.AddFeatureManagement();
+    services.AddHttpContextAccessor();
 
     // Add validators
     #region Auth Validators
