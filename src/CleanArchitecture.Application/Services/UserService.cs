@@ -1,6 +1,5 @@
 ﻿using CleanArchitecture.Application.DTOs.User;
 using CleanArchitecture.Application.ServiceContracts;
-using CleanArchitecture.Application.Validators.Auth;
 using IdentityModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -28,7 +27,7 @@ public class UserService : IUserService
     var user = _httpContextAccessor.HttpContext?.User;
     if (user == null || !user.Identity!.IsAuthenticated)
     {
-      return Result<UserProfileResponse>.Failure([UserErrors.UnauthorizedUser]);
+      return Result<UserProfileResponse>.Failure([UserErrors.UnauthorizedUser], StatusCodes.Status401Unauthorized);
     }
 
     var id = user.FindFirst(ClaimTypes.NameIdentifier)!.Value;
@@ -52,7 +51,7 @@ public class UserService : IUserService
       LastName = lastname,
       Gender = Boolean.Parse(gender),
       Roles = roles
-    });
+    }, StatusCodes.Status200OK);
   }
 
   public async Task<Result<UserProfileResponse>> UpdateUserProfileAsync(UpdateProfileRequest updateProfileRequest)
@@ -64,25 +63,25 @@ public class UserService : IUserService
           .Select(e => new Error("ValidationError", e.ErrorMessage))
           .ToList();
 
-      return Result<UserProfileResponse>.Failure(errors);
+      return Result<UserProfileResponse>.Failure(errors, StatusCodes.Status400BadRequest);
     }
 
     var authorizedUser = _httpContextAccessor.HttpContext?.User;
     if (authorizedUser == null || !authorizedUser.Identity!.IsAuthenticated)
     {
-      return Result<UserProfileResponse>.Failure([UserErrors.UnauthorizedUser]);
+      return Result<UserProfileResponse>.Failure([UserErrors.UnauthorizedUser], StatusCodes.Status401Unauthorized);
     }
     var id = authorizedUser.FindFirst(ClaimTypes.NameIdentifier)!.Value;
     var roles = authorizedUser.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
 
     var user = await _userManager.FindByIdAsync(id);
     if (user == null)
-      return Result<UserProfileResponse>.Failure([AuthErrors.UserNotFound]);
+      return Result<UserProfileResponse>.Failure([AuthErrors.UserNotFound], StatusCodes.Status404NotFound);
 
     user.UserName = updateProfileRequest.UserName ?? user.UserName;
     var duplicateUser = await _userManager.FindByNameAsync(user.UserName!);
     if (duplicateUser != null && duplicateUser.Id != user.Id)
-      return Result<UserProfileResponse>.Failure([AuthErrors.DuplicateUserName]);
+      return Result<UserProfileResponse>.Failure([AuthErrors.DuplicateUserName], StatusCodes.Status409Conflict);
 
     user.PhoneNumber = updateProfileRequest.PhoneNumber ?? user.PhoneNumber;
     user.BirthDate = updateProfileRequest.BirthDate ?? user.BirthDate;
@@ -92,9 +91,9 @@ public class UserService : IUserService
 
     var result = await _userManager.UpdateAsync(user);
     if (!result.Succeeded)
-    {
+    { 
       var errors = result.Errors.Select(e => new Error(e.Code, e.Description)).ToList();
-      return Result<UserProfileResponse>.Failure(errors);
+      return Result<UserProfileResponse>.Failure(errors, StatusCodes.Status500InternalServerError);
     }
 
     return Result<UserProfileResponse>.Success(new UserProfileResponse
@@ -108,6 +107,6 @@ public class UserService : IUserService
       LastName = user.LastName,
       Gender = user.Gender,
       Roles = roles
-    });
+    }, StatusCodes.Status200OK);
   }
 }

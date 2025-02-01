@@ -13,13 +13,21 @@ public class AuthController : ICarterModule
     group.MapPost("/login", async (IAuthService authService, LoginRequest request) =>
     {
       var result = await authService.LoginAsync(request);
-      return result.IsSuccess
-        ? Results.Ok(new ApiResponse<AuthResponse>(true, result.Data!, "Login Successfully.", null))
-        : Results.BadRequest(new ApiResponse<AuthResponse>(false, null, "Login Failed.", result.Errors));
+      if (result.IsSuccess)
+      {
+        return Results.Ok(new ApiResponse<AuthResponse>(true, result.Data, "Login Successfully.", result.Errors));
+      }
+
+      return result.Status switch
+      {
+        StatusCodes.Status400BadRequest => Results.BadRequest(new ApiResponse<AuthResponse>(false, result.Data, "Input Validation Failed.", result.Errors)),
+        _ => Results.StatusCode(StatusCodes.Status500InternalServerError),
+      };
     })
     .WithName("Login")
     .Produces<ApiResponse<AuthResponse>>(StatusCodes.Status200OK)
     .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status500InternalServerError)
     .WithSummary("Login")
     .WithDescription("User Login Authentication");
     #endregion
@@ -28,13 +36,23 @@ public class AuthController : ICarterModule
     group.MapPost("/register", async (IAuthService authService, RegisterRequest request) =>
     {
       var result = await authService.RegisterAsync(request);
-      return result.IsSuccess
-          ? Results.Ok(new ApiResponse<AuthResponse>(true, result.Data!, "Register Successfully.", null))
-          : Results.BadRequest(new ApiResponse<AuthResponse>(false, null, "Register Failed.", result.Errors));
+      if (result.IsSuccess)
+      {
+        return Results.Ok(new ApiResponse<AuthResponse>(true, result.Data, "Register Successfully.", null));
+      }
+
+      return result.Status switch
+      {
+        StatusCodes.Status400BadRequest => Results.BadRequest(new ApiResponse<AuthResponse>(false, result.Data, "Input Validation Failed.", result.Errors)),
+        StatusCodes.Status409Conflict => Results.Conflict(new ApiResponse<AuthResponse>(false, result.Data, "Resource Already Exists.", result.Errors)),
+        _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
+      };
     })
     .WithName("Register")
     .Produces<ApiResponse<AuthResponse>>(StatusCodes.Status200OK)
     .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status409Conflict)
+    .ProducesProblem(StatusCodes.Status500InternalServerError)
     .WithSummary("Register")
     .WithDescription("User Registration");
     #endregion
@@ -43,13 +61,23 @@ public class AuthController : ICarterModule
     group.MapPost("/forgot-password", async (IAuthService authService, ForgotPasswordRequest request) =>
     {
       var result = await authService.ForgotPasswordAsync(request);
-      return result.IsSuccess
-          ? Results.Ok(new ApiResponse<string>(true, result.Data!, "A Password Reset Request Has Been Sent To Your Email.", null))
-          : Results.BadRequest(new ApiResponse<string>(false, null, "Failed To Request A Password Reset.", result.Errors));
+      if (result.IsSuccess)
+      {
+        return Results.Ok(new ApiResponse<string>(true, result.Data, "A Password Reset Request Has Been Sent To Your Email.", result.Errors));
+      }
+
+      return result.Status switch
+      {
+        StatusCodes.Status400BadRequest => Results.BadRequest(new ApiResponse<string>(false, result.Data, "Input Validation Failed.", result.Errors)),
+        StatusCodes.Status404NotFound => Results.NotFound(new ApiResponse<string>(false, result.Data, "Resource Not Found", result.Errors)),
+        _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
+      };
     })
     .WithName("ForgotPassword")
     .Produces<ApiResponse<string>>(StatusCodes.Status200OK)
     .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status404NotFound)
+    .ProducesProblem(StatusCodes.Status500InternalServerError)
     .WithSummary("ForgotPassword")
     .WithDescription("Enter Email To Reset Your Password");
     #endregion
@@ -58,13 +86,23 @@ public class AuthController : ICarterModule
     group.MapPost("/reset-password", async (IAuthService authService, ResetPasswordRequest request) =>
     {
       var result = await authService.ResetPasswordAsync(request);
-      return result.IsSuccess
-          ? Results.Ok(new ApiResponse<string>(true, result.Data!, "Password Has Been Successfully Changed.", null))
-          : Results.BadRequest(new ApiResponse<string>(false, null, "Reset Password Failed.", result.Errors));
+      if (result.IsSuccess)
+      {
+        return Results.Ok(new ApiResponse<string>(true, result.Data, "Password Has Been Changed Successfully.", result.Errors));
+      }
+
+      return result.Status switch
+      {
+        StatusCodes.Status400BadRequest => Results.BadRequest(new ApiResponse<string>(false, result.Data, "Input Validation Failed.", result.Errors)),
+        StatusCodes.Status404NotFound => Results.NotFound(new ApiResponse<string>(false, result.Data, "Resource Not Found", result.Errors)),
+        _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
+      };
     })
     .WithName("ResetPassword")
     .Produces<ApiResponse<string>>(StatusCodes.Status200OK)
     .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status404NotFound)
+    .ProducesProblem(StatusCodes.Status500InternalServerError)
     .WithSummary("ResetPassword")
     .WithDescription("Enter Your New Password To Change It");
     #endregion
