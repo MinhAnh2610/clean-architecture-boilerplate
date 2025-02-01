@@ -1,6 +1,4 @@
 ﻿using CleanArchitecture.Application.DTOs.User;
-using CleanArchitecture.Application.ServiceContracts;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace CleanArchitecture.Presentation.Endpoints.User;
 

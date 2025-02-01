@@ -1,5 +1,4 @@
 ﻿using CleanArchitecture.Application.DTOs.Auth;
-using CleanArchitecture.Application.ServiceContracts;
 
 namespace CleanArchitecture.Presentation.Endpoints.Auth;
 
