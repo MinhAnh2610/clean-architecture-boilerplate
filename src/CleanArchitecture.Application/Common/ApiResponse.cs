@@ -14,4 +14,10 @@ public class ApiResponse<T>
   public T? Data { get; set; } = default;
   public string Message { get; set; }
   public List<Error>? Errors { get; set; } = default;
+
+  public static ApiResponse<T> SuccessResponse(T data, string message) 
+    => new ApiResponse<T> (true, data, message, new List<Error>());
+
+  public static ApiResponse<T> FailureResponse(List<Error> errors, string message) 
+    => new ApiResponse<T> (false, default, message, errors);
 }

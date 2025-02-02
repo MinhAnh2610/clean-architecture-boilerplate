@@ -14,12 +14,11 @@ public class UserController : ICarterModule
       var result = await userService.GetUserProfile();
       if (result.IsSuccess)
       {
-        return Results.Ok(new ApiResponse<UserProfileResponse>(true, result.Data, "Retrieve User Profile Successfully.", result.Errors));
+        return Results.Ok(ApiResponse<UserProfileResponse>.SuccessResponse(result.Data!, "Retrieve User Profile Successfully."));
       }
 
       return result.Status switch
       {
-        StatusCodes.Status401Unauthorized => Results.Unauthorized(),
         _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
       };
     })
@@ -38,15 +37,15 @@ public class UserController : ICarterModule
       var result = await userService.UpdateUserProfileAsync(request);
       if (result.IsSuccess)
       {
-        Results.Ok(new ApiResponse<UserProfileResponse>(true, result.Data, "Update User Profile Successfully.", result.Errors));
+        Results.Ok(ApiResponse<UserProfileResponse>.SuccessResponse(result.Data!, "Update User Profile Successfully."));
       }
 
       return result.Status switch
       {
-        StatusCodes.Status400BadRequest => Results.BadRequest(new ApiResponse<UserProfileResponse>(false, result.Data, "Input Validation Failed.", result.Errors)),
+        StatusCodes.Status400BadRequest => Results.BadRequest(ApiResponse<UserProfileResponse>.FailureResponse(result.Errors, "Input Validation Failed.")),
         StatusCodes.Status401Unauthorized => Results.Unauthorized(),
-        StatusCodes.Status404NotFound => Results.NotFound(new ApiResponse<UserProfileResponse>(false, result.Data, "Resource Not Found.", result.Errors)),
-        StatusCodes.Status409Conflict => Results.Conflict(new ApiResponse<UserProfileResponse>(false, result.Data, "Resource Already Exists", result.Errors)),
+        StatusCodes.Status404NotFound => Results.NotFound(ApiResponse<UserProfileResponse>.FailureResponse(result.Errors, "Resource Not Found.")),
+        StatusCodes.Status409Conflict => Results.Conflict(ApiResponse<UserProfileResponse>.FailureResponse(result.Errors, "Resource Already Exists")),
         _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
       };
     })

@@ -1,6 +1,6 @@
 ﻿using CleanArchitecture.Domain.Entities;
 using CleanArchitecture.Infrastructure.Data;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using CleanArchitecture.Presentation.Middlewares;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -11,6 +11,9 @@ public static class DependencyInjection
 {
   public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration config)
   {
+    services.AddExceptionHandler<CustomErrorHandlingMiddleware>();
+    services.AddProblemDetails();
+
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     services.AddEndpointsApiExplorer();
     services.AddSwaggerGen(options =>
@@ -60,6 +63,37 @@ public static class DependencyInjection
     services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
       .AddJwtBearer(options =>
       {
+        options.Events = new JwtBearerEvents
+        {
+          OnChallenge = async context =>
+          {
+            // Prevent the default response
+            context.HandleResponse();
+
+            var apiResponse = ApiResponse<string>.FailureResponse(
+                new List<Error>(),
+                "Authentication Required Or Failed."
+            );
+
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            context.Response.ContentType = "application/json";
+
+            await context.Response.WriteAsJsonAsync(apiResponse);
+          },
+          OnForbidden = async context =>
+          {
+            var apiResponse = ApiResponse<string>.FailureResponse(
+                new List<Error>(),
+                "You Do Not Have Permission To Access This Resource."
+            );
+
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            context.Response.ContentType = "application/json";
+
+            await context.Response.WriteAsJsonAsync(apiResponse);
+          }
+        };
+
         options.Authority = "https://localhost:5051";
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -74,8 +108,6 @@ public static class DependencyInjection
 
     services.AddCarter();
 
-    //services.AddExceptionHandler<CustomExceptionHandler>();
-
     //services.AddHealthChecks().AddNpgSql(config.GetConnectionString("Database")!);
 
     return services;
@@ -83,6 +115,8 @@ public static class DependencyInjection
 
   public static WebApplication UseApiServices(this WebApplication app)
   {
+    app.UseExceptionHandler(options => { });
+
     app.UseHttpsRedirection();
 
     app.UseRouting();
@@ -94,7 +128,6 @@ public static class DependencyInjection
 
     app.MapCarter();
 
-    //app.UseExceptionHandler(options => { });
     //app.UseHealthChecks("health",
     //  new HealthCheckOptions
     //  {

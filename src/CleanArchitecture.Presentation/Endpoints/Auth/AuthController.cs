@@ -14,12 +14,12 @@ public class AuthController : ICarterModule
       var result = await authService.LoginAsync(request);
       if (result.IsSuccess)
       {
-        return Results.Ok(new ApiResponse<AuthResponse>(true, result.Data, "Login Successfully.", result.Errors));
+        return Results.Ok(ApiResponse<AuthResponse>.SuccessResponse(result.Data!, "Login Successfully."));
       }
 
       return result.Status switch
       {
-        StatusCodes.Status400BadRequest => Results.BadRequest(new ApiResponse<AuthResponse>(false, result.Data, "Input Validation Failed.", result.Errors)),
+        StatusCodes.Status400BadRequest => Results.BadRequest(ApiResponse<AuthResponse>.FailureResponse(result.Errors, "Input Validation Failed.")),
         _ => Results.StatusCode(StatusCodes.Status500InternalServerError),
       };
     })
@@ -37,13 +37,13 @@ public class AuthController : ICarterModule
       var result = await authService.RegisterAsync(request);
       if (result.IsSuccess)
       {
-        return Results.Ok(new ApiResponse<AuthResponse>(true, result.Data, "Register Successfully.", null));
+        return Results.Ok(ApiResponse<AuthResponse>.SuccessResponse(result.Data!, "Register Successfully."));
       }
 
       return result.Status switch
       {
-        StatusCodes.Status400BadRequest => Results.BadRequest(new ApiResponse<AuthResponse>(false, result.Data, "Input Validation Failed.", result.Errors)),
-        StatusCodes.Status409Conflict => Results.Conflict(new ApiResponse<AuthResponse>(false, result.Data, "Resource Already Exists.", result.Errors)),
+        StatusCodes.Status400BadRequest => Results.BadRequest(ApiResponse<AuthResponse>.FailureResponse(result.Errors, "Input Validation Failed.")),
+        StatusCodes.Status409Conflict => Results.Conflict(ApiResponse<AuthResponse>.FailureResponse(result.Errors, "Resource Already Exists.")),
         _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
       };
     })
@@ -62,13 +62,13 @@ public class AuthController : ICarterModule
       var result = await authService.ForgotPasswordAsync(request);
       if (result.IsSuccess)
       {
-        return Results.Ok(new ApiResponse<string>(true, result.Data, "A Password Reset Request Has Been Sent To Your Email.", result.Errors));
+        return Results.Ok(ApiResponse<string>.SuccessResponse(result.Data!, "A Password Reset Request Has Been Sent To Your Email."));
       }
 
       return result.Status switch
       {
-        StatusCodes.Status400BadRequest => Results.BadRequest(new ApiResponse<string>(false, result.Data, "Input Validation Failed.", result.Errors)),
-        StatusCodes.Status404NotFound => Results.NotFound(new ApiResponse<string>(false, result.Data, "Resource Not Found", result.Errors)),
+        StatusCodes.Status400BadRequest => Results.BadRequest(ApiResponse<string>.FailureResponse(result.Errors, "Input Validation Failed.")),
+        StatusCodes.Status404NotFound => Results.NotFound(ApiResponse<string>.FailureResponse(result.Errors, "Resource Not Found")),
         _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
       };
     })
@@ -87,13 +87,13 @@ public class AuthController : ICarterModule
       var result = await authService.ResetPasswordAsync(request);
       if (result.IsSuccess)
       {
-        return Results.Ok(new ApiResponse<string>(true, result.Data, "Password Has Been Changed Successfully.", result.Errors));
+        return Results.Ok(ApiResponse<string>.SuccessResponse(result.Data!, "Password Has Been Changed Successfully."));
       }
 
       return result.Status switch
       {
-        StatusCodes.Status400BadRequest => Results.BadRequest(new ApiResponse<string>(false, result.Data, "Input Validation Failed.", result.Errors)),
-        StatusCodes.Status404NotFound => Results.NotFound(new ApiResponse<string>(false, result.Data, "Resource Not Found", result.Errors)),
+        StatusCodes.Status400BadRequest => Results.BadRequest(ApiResponse<string>.FailureResponse(result.Errors, "Input Validation Failed.")),
+        StatusCodes.Status404NotFound => Results.NotFound(ApiResponse<string>.FailureResponse(result.Errors, "Resource Not Found")),
         _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
       };
     })
