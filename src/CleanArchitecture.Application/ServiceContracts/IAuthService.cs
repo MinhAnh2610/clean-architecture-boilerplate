@@ -8,4 +8,5 @@ public interface IAuthService
   Task<Result<string>> RegisterAsync(RegisterRequest request);
   Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest request);
   Task<Result<string>> ResetPasswordAsync(ResetPasswordRequest request);
+  Task<Result<AuthResponse>> RefreshTokenAsync(RefreshTokenRequest request);
 }

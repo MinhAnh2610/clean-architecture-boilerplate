@@ -1,4 +1,5 @@
 ﻿using CleanArchitecture.Application.DTOs.Auth;
+using CleanArchitecture.Application.Enums;
 
 namespace CleanArchitecture.Presentation.Endpoints.Auth;
 
@@ -105,6 +106,34 @@ public class AuthController : ICarterModule
     .ProducesProblem(StatusCodes.Status500InternalServerError)
     .WithSummary("ResetPassword")
     .WithDescription("Enter Your New Password To Change It");
+    #endregion
+
+    #region Refresh Token API
+    group.MapPost("/refresh-token", async (IAuthService authService, RefreshTokenRequest request) =>
+    {
+      var result = await authService.RefreshTokenAsync(request);
+      if (result.IsSuccess)
+      {
+        return Results.Ok(ApiResponse<AuthResponse>.SuccessResponse(result.Data!, "Token Has Been Refreshed Successfully."));
+      }
+
+      return result.Status switch
+      {
+        StatusCodes.Status400BadRequest => Results.BadRequest(ApiResponse<string>.FailureResponse(result.Errors, "Input Validation Failed.")),
+        _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
+      };
+    })
+    .WithName("RefreshToken")
+    .Produces<ApiResponse<string>>(StatusCodes.Status200OK)
+    .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status401Unauthorized)
+    .ProducesProblem(StatusCodes.Status500InternalServerError)
+    .WithSummary("RefreshToken")
+    .WithDescription("Enter Your Refresh Token To Refresh The Access Token")
+    .RequireAuthorization(new AuthorizeAttribute
+    {
+      AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
+    });
     #endregion
   }
 }

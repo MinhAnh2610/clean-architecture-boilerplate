@@ -7,7 +7,6 @@ using CleanArchitecture.Application.Validators;
 using CleanArchitecture.Application.Validators.Auth;
 using CleanArchitecture.Application.Validators.Role;
 using CleanArchitecture.Application.Validators.User;
-using IdentityServer4.Services;
 using IdentityServer4.Validation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +29,7 @@ public static class DependencyInjection
     services.AddScoped<IValidator<RegisterRequest>, RegisterValidator>();
     services.AddScoped<IValidator<ForgotPasswordRequest>, ForgotPasswordValidator>();
     services.AddScoped<IValidator<ResetPasswordRequest>, ResetPasswordValidator>();
+    services.AddScoped<IValidator<RefreshTokenRequest>, RefreshTokenValidator>();
     #endregion
 
     #region User Validators
