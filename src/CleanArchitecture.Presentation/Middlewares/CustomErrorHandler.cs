@@ -24,13 +24,20 @@ public class CustomErrorHandler
     {
       await HandleResponseAsync(context, HttpStatusCode.Forbidden, "You Do Not Have Permission To Access This Resource.");
     }
+    else if (context.Response.StatusCode == StatusCodes.Status500InternalServerError)
+    {
+      await HandleResponseAsync(context, HttpStatusCode.InternalServerError, "An Unexpected Error Occurred On The Server.");
+    }
   }
 
   private static async Task HandleResponseAsync(HttpContext context, HttpStatusCode statusCode, string message)
   {
     context.Response.ContentType = "application/json";
 
-    var response = ApiResponse<string>.FailureResponse(new List<Error>(), message);
+    var response = ApiResponse<string>.FailureResponse(
+      new List<Error>(),
+      message
+      );
 
     var json = JsonSerializer.Serialize(response);
     await context.Response.WriteAsync(json);

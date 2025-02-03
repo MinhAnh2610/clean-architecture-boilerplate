@@ -87,8 +87,8 @@ public class AuthService : IAuthService
       ClientId = "api_client",
       ClientSecret = "secret",
 
-      UserName = "Admin123",
-      Password = "12345",
+      UserName = user.UserName!,
+      Password = loginRequest.Password,
 
       Scope = "openid profile email roles API offline_access"
     });
@@ -109,15 +109,15 @@ public class AuthService : IAuthService
     }, StatusCodes.Status200OK);
   }
 
-  public async Task<Result<AuthResponse>> RegisterAsync(RegisterRequest registerRequest)
+  public async Task<Result<string>> RegisterAsync(RegisterRequest registerRequest)
   {
     if (await _userManager.FindByEmailAsync(registerRequest.Email) != null)
     {
-      return Result<AuthResponse>.Failure([AuthErrors.AlreadyRegistered], StatusCodes.Status409Conflict);
+      return Result<string>.Failure([AuthErrors.AlreadyRegistered], StatusCodes.Status409Conflict);
     }
     if (await _userManager.FindByNameAsync(registerRequest.UserName) != null)
     {
-      return Result<AuthResponse>.Failure([AuthErrors.DuplicateUserName], StatusCodes.Status409Conflict);
+      return Result<string>.Failure([AuthErrors.DuplicateUserName], StatusCodes.Status409Conflict);
     }
     var validationResult = await _registerValidator.ValidateAsync(registerRequest);
     if (!validationResult.IsValid)
@@ -126,53 +126,58 @@ public class AuthService : IAuthService
           .Select(e => new Error("ValidationError", e.ErrorMessage))
           .ToList();
 
-      return Result<AuthResponse>.Failure(errors, StatusCodes.Status400BadRequest);
+      return Result<string>.Failure(errors, StatusCodes.Status400BadRequest);
     }
 
-    var user = new User { UserName = registerRequest.UserName, Email = registerRequest.Email };
+    var user = new User 
+    { 
+      UserName = registerRequest.UserName, 
+      Email = registerRequest.Email,
+      Gender = registerRequest.Gender,
+      FirstName = registerRequest.FirstName,
+      LastName = registerRequest.LastName,
+      PhoneNumber = registerRequest.PhoneNumber
+    };
 
     var result = await _userManager.CreateAsync(user, registerRequest.Password);
     if (!result.Succeeded)
     {
       var errors = result.Errors.Select(e => new Error(e.Code, e.Description)).ToList();
-      return Result<AuthResponse>.Failure(errors, StatusCodes.Status500InternalServerError);
+      return Result<string>.Failure(errors, StatusCodes.Status500InternalServerError);
     }
-    await _userManager.AddToRolesAsync(user, [Roles.Customer]);
-
-    var client = _httpClientFactory.CreateClient();
-    var disco = await client.GetDiscoveryDocumentAsync("https://localhost:5051/");
-    if (disco.IsError)
+    var roleResult = await _userManager.AddToRolesAsync(user, [Roles.Customer]);
+    if (!roleResult.Succeeded)
     {
-      return Result<AuthResponse>.Failure([AuthErrors.IdentityServerFailed], StatusCodes.Status500InternalServerError);
+      var errors = roleResult.Errors.Select(e => new Error(e.Code, e.Description)).ToList();
+      return Result<string>.Failure(errors, StatusCodes.Status500InternalServerError);
     }
 
-    var tokenResponse = await client.RequestPasswordTokenAsync(new PasswordTokenRequest
-    {
-      Address = disco.TokenEndpoint,
+    //var client = _httpClientFactory.CreateClient();
+    //var disco = await client.GetDiscoveryDocumentAsync("https://localhost:5051/");
+    //if (disco.IsError)
+    //{
+    //  return Result<string>.Failure([AuthErrors.IdentityServerFailed], StatusCodes.Status500InternalServerError);
+    //}
 
-      ClientId = "api_client",
-      ClientSecret = "secret",
+    //var tokenResponse = await client.RequestPasswordTokenAsync(new PasswordTokenRequest
+    //{
+    //  Address = disco.TokenEndpoint,
 
-      UserName = "Admin123",
-      Password = "12345",
+    //  ClientId = "api_client",
+    //  ClientSecret = "secret",
 
-      Scope = "openid profile email roles API offline_access"
-    });
+    //  UserName = user.UserName,
+    //  Password = registerRequest.Password,
 
-    if (tokenResponse.IsError)
-    {
-      return Result<AuthResponse>.Failure([AuthErrors.TokenResponseError(tokenResponse.Error!)], StatusCodes.Status500InternalServerError);
-    }
+    //  Scope = "openid profile email roles API offline_access"
+    //});
 
-    return Result<AuthResponse>.Success(new AuthResponse
-    {
-      AccessToken = tokenResponse.AccessToken!,
-      AccessTokenExpiration = tokenResponse.ExpiresIn,
-      RefreshToken = tokenResponse.RefreshToken!,
-      RefreshTokenExpiration = 2592000,
-      Email = registerRequest.Email!,
-      UserName = registerRequest.UserName!,
-    }, StatusCodes.Status200OK);
+    //if (tokenResponse.IsError)
+    //{
+    //  return Result<string>.Failure([AuthErrors.TokenResponseError(tokenResponse.Error!)], StatusCodes.Status500InternalServerError);
+    //}
+
+    return Result<string>.Success(null, StatusCodes.Status200OK);
   }
 
   public async Task<Result<string>> ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest)

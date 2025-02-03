@@ -37,18 +37,18 @@ public class AuthController : ICarterModule
       var result = await authService.RegisterAsync(request);
       if (result.IsSuccess)
       {
-        return Results.Ok(ApiResponse<AuthResponse>.SuccessResponse(result.Data!, "Register Successfully."));
+        return Results.Ok(ApiResponse<string>.SuccessResponse(result.Data!, "Register Successfully."));
       }
 
       return result.Status switch
       {
-        StatusCodes.Status400BadRequest => Results.BadRequest(ApiResponse<AuthResponse>.FailureResponse(result.Errors, "Input Validation Failed.")),
-        StatusCodes.Status409Conflict => Results.Conflict(ApiResponse<AuthResponse>.FailureResponse(result.Errors, "Resource Already Exists.")),
+        StatusCodes.Status400BadRequest => Results.BadRequest(ApiResponse<string>.FailureResponse(result.Errors, "Input Validation Failed.")),
+        StatusCodes.Status409Conflict => Results.Conflict(ApiResponse<string>.FailureResponse(result.Errors, "Resource Already Exists.")),
         _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
       };
     })
     .WithName("Register")
-    .Produces<ApiResponse<AuthResponse>>(StatusCodes.Status200OK)
+    .Produces<ApiResponse<string>>(StatusCodes.Status200OK)
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status409Conflict)
     .ProducesProblem(StatusCodes.Status500InternalServerError)

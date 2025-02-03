@@ -10,6 +10,10 @@ public class RegisterValidator : AbstractValidator<RegisterRequest>
             .NotEmpty().WithMessage("Email is required.")
             .EmailAddress().WithMessage("Invalid email format.");
 
+    RuleFor(x => x.PhoneNumber)
+            .NotEmpty().WithMessage("Phone number is required.")
+            .Matches(@"^\+?\d{10,15}$").WithMessage("Invalid phone number format.");
+
     RuleFor(x => x.Password)
         .NotEmpty().WithMessage("Password is required.");
 
@@ -18,5 +22,13 @@ public class RegisterValidator : AbstractValidator<RegisterRequest>
 
     RuleFor(x => x.UserName)
         .NotEmpty().WithMessage("Username is required.");
+
+    RuleFor(x => x.FirstName)
+            .NotEmpty().WithMessage("First name is required.")
+            .Matches(@"^[a-zA-Z]+$").WithMessage("First name must contain only letters.");
+
+    RuleFor(x => x.LastName)
+        .NotEmpty().WithMessage("Last name is required.")
+        .Matches(@"^[a-zA-Z]+$").WithMessage("Last name must contain only letters.");
   }
 }
