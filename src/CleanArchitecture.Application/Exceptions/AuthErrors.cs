@@ -6,7 +6,7 @@ public static class AuthErrors
 
   public static readonly Error NotRegistered = new Error("AuthErrors.NotRegistered", "You haven't sign up yet.");
 
-  public static readonly Error UserNotFound = new Error("AuthErrors.UserNotFound", "We couldn't find your email, make sure you given the correct one.");
+  public static readonly Error UserNotFound = new Error("AuthErrors.UserNotFound", "We couldn't find your account, make sure you given the correct credentials.");
 
   public static readonly Error AlreadyRegistered = new Error("AuthErrors.AlreadyRegistered", "You have registered with this email.");
 

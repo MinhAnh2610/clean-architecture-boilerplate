@@ -5,5 +5,5 @@ namespace CleanArchitecture.Application.ServiceContracts;
 
 public interface IRoleService
 {
-  Task<Result<UserProfileResponse>> AssignRoleAsync(AssignRoleRequest assignRoleRequest);
+  Task<Result<UserProfileResponse>> AssignRoleAsync(AssignRoleRequest request);
 }

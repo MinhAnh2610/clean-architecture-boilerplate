@@ -1,5 +1,6 @@
 ﻿using CleanArchitecture.Application.DTOs.User;
 using CleanArchitecture.Application.ServiceContracts;
+using FluentValidation;
 using IdentityModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -12,14 +13,66 @@ public class UserService : IUserService
   private readonly IHttpContextAccessor _httpContextAccessor;
   private readonly UserManager<User> _userManager;
   private readonly IValidator<UpdateProfileRequest> _updateProfileValidator;
+  private readonly IValidator<UserRequest> _userValidator;
 
-  public UserService(IHttpContextAccessor httpContextAccessor, 
-                     UserManager<User> userManager, 
-                     IValidator<UpdateProfileRequest> updateProfileValidator)
+  public UserService(IHttpContextAccessor httpContextAccessor,
+                     UserManager<User> userManager,
+                     IValidator<UpdateProfileRequest> updateProfileValidator,
+                     IValidator<UserRequest> userValidator)
   {
     _httpContextAccessor = httpContextAccessor;
     _userManager = userManager;
     _updateProfileValidator = updateProfileValidator;
+    _userValidator = userValidator;
+  }
+
+  public async Task<Result<string>> DisableUserAsync(UserRequest request)
+  {
+    var validationResult = await _userValidator.ValidateAsync(request);
+    if (!validationResult.IsValid)
+    {
+      var errors = validationResult.Errors
+          .Select(e => new Error("ValidationError", e.ErrorMessage))
+          .ToList();
+
+      return Result<string>.Failure(errors, StatusCodes.Status400BadRequest);
+    }
+
+    var user = await _userManager.FindByNameAsync(request.UserName);
+    if (user == null)
+      return Result<string>.Failure([AuthErrors.UserNotFound], StatusCodes.Status404NotFound);
+
+    user.LockoutEnabled = true;
+    user.LockoutEnd = DateTime.UtcNow.AddYears(100);
+    var result = await _userManager.UpdateAsync(user);
+    var resultErrors = result.Errors.Select(e => new Error(e.Code, e.Description)).ToList();
+    return result.Succeeded
+      ? Result<string>.Success(default!, StatusCodes.Status200OK)
+      : Result<string>.Failure(resultErrors, StatusCodes.Status400BadRequest);
+  }
+
+  public async Task<Result<string>> EnableUserAsync(UserRequest request)
+  {
+    var validationResult = await _userValidator.ValidateAsync(request);
+    if (!validationResult.IsValid)
+    {
+      var errors = validationResult.Errors
+          .Select(e => new Error("ValidationError", e.ErrorMessage))
+          .ToList();
+
+      return Result<string>.Failure(errors, StatusCodes.Status400BadRequest);
+    }
+
+    var user = await _userManager.FindByNameAsync(request.UserName);
+    if (user == null)
+      return Result<string>.Failure([AuthErrors.UserNotFound], StatusCodes.Status404NotFound);
+
+    user.LockoutEnabled = false;
+    var result = await _userManager.UpdateAsync(user);
+    var resultErrors = result.Errors.Select(e => new Error(e.Code, e.Description)).ToList();
+    return result.Succeeded
+      ? Result<string>.Success(default!, StatusCodes.Status200OK)
+      : Result<string>.Failure(resultErrors, StatusCodes.Status400BadRequest);
   }
 
   public async Task<Result<UserProfileResponse>> GetUserProfile()
@@ -54,9 +107,9 @@ public class UserService : IUserService
     }, StatusCodes.Status200OK);
   }
 
-  public async Task<Result<UserProfileResponse>> UpdateUserProfileAsync(UpdateProfileRequest updateProfileRequest)
+  public async Task<Result<UserProfileResponse>> UpdateUserProfileAsync(UpdateProfileRequest request)
   {
-    var validationResult = await _updateProfileValidator.ValidateAsync(updateProfileRequest);
+    var validationResult = await _updateProfileValidator.ValidateAsync(request);
     if (!validationResult.IsValid)
     {
       var errors = validationResult.Errors
@@ -78,20 +131,20 @@ public class UserService : IUserService
     if (user == null)
       return Result<UserProfileResponse>.Failure([AuthErrors.UserNotFound], StatusCodes.Status404NotFound);
 
-    user.UserName = updateProfileRequest.UserName ?? user.UserName;
+    user.UserName = request.UserName ?? user.UserName;
     var duplicateUser = await _userManager.FindByNameAsync(user.UserName!);
     if (duplicateUser != null && duplicateUser.Id != user.Id)
       return Result<UserProfileResponse>.Failure([AuthErrors.DuplicateUserName], StatusCodes.Status409Conflict);
 
-    user.PhoneNumber = updateProfileRequest.PhoneNumber ?? user.PhoneNumber;
-    user.BirthDate = updateProfileRequest.BirthDate ?? user.BirthDate;
-    user.FirstName = updateProfileRequest.FirstName ?? user.FirstName;
-    user.LastName = updateProfileRequest.LastName ?? user.LastName; 
-    user.Gender = updateProfileRequest.Gender ?? user.Gender;
+    user.PhoneNumber = request.PhoneNumber ?? user.PhoneNumber;
+    user.BirthDate = request.BirthDate ?? user.BirthDate;
+    user.FirstName = request.FirstName ?? user.FirstName;
+    user.LastName = request.LastName ?? user.LastName;
+    user.Gender = request.Gender ?? user.Gender;
 
     var result = await _userManager.UpdateAsync(user);
     if (!result.Succeeded)
-    { 
+    {
       var errors = result.Errors.Select(e => new Error(e.Code, e.Description)).ToList();
       return Result<UserProfileResponse>.Failure(errors, StatusCodes.Status500InternalServerError);
     }

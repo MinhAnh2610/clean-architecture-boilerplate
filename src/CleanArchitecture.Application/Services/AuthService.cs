@@ -31,9 +31,9 @@ public class AuthService : IAuthService
     _resetPasswordValidator = resetPasswordValidator;
   }
 
-  public async Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest forgotPasswordRequest)
+  public async Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest request)
   {
-    var validationResult = await _forgotPasswordValidator.ValidateAsync(forgotPasswordRequest);
+    var validationResult = await _forgotPasswordValidator.ValidateAsync(request);
     if (!validationResult.IsValid)
     {
       var errors = validationResult.Errors
@@ -42,7 +42,7 @@ public class AuthService : IAuthService
 
       return Result<string>.Failure(errors, StatusCodes.Status400BadRequest);
     }
-    var user = await _userManager.FindByEmailAsync(forgotPasswordRequest.Email);
+    var user = await _userManager.FindByEmailAsync(request.Email);
     if (user == null)
     {
       return Result<string>.Failure([AuthErrors.UserNotFound], StatusCodes.Status404NotFound);
@@ -55,9 +55,9 @@ public class AuthService : IAuthService
     return Result<string>.Success(token, StatusCodes.Status200OK);
   }
 
-  public async Task<Result<AuthResponse>> LoginAsync(LoginRequest loginRequest)
+  public async Task<Result<AuthResponse>> LoginAsync(LoginRequest request)
   {
-    var validationResult = await _loginValidator.ValidateAsync(loginRequest);
+    var validationResult = await _loginValidator.ValidateAsync(request);
     if (!validationResult.IsValid)
     {
       var errors = validationResult.Errors
@@ -67,8 +67,8 @@ public class AuthService : IAuthService
       return Result<AuthResponse>.Failure(errors, StatusCodes.Status400BadRequest);
     }
 
-    var user = await _userManager.FindByNameAsync(loginRequest.UserName);
-    if (user == null || !await _userManager.CheckPasswordAsync(user, loginRequest.Password))
+    var user = await _userManager.FindByNameAsync(request.UserName);
+    if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
     {
       return Result<AuthResponse>.Failure([AuthErrors.InvalidCredentials], StatusCodes.Status400BadRequest);
     }
@@ -77,7 +77,7 @@ public class AuthService : IAuthService
     var disco = await client.GetDiscoveryDocumentAsync("https://localhost:5051/");
     if (disco.IsError)
     {
-      return Result<AuthResponse>.Failure([AuthErrors.IdentityServerFailed], (int)StatusCodes.Status500InternalServerError);
+      return Result<AuthResponse>.Failure([AuthErrors.IdentityServerFailed], StatusCodes.Status500InternalServerError);
     }
 
     var tokenResponse = await client.RequestPasswordTokenAsync(new PasswordTokenRequest
@@ -88,14 +88,14 @@ public class AuthService : IAuthService
       ClientSecret = "secret",
 
       UserName = user.UserName!,
-      Password = loginRequest.Password,
+      Password = request.Password,
 
       Scope = "openid profile email roles API offline_access"
     });
 
     if (tokenResponse.IsError)
     {
-      return Result<AuthResponse>.Failure([AuthErrors.TokenResponseError(tokenResponse.Error!)], (int)StatusCodes.Status500InternalServerError);
+      return Result<AuthResponse>.Failure([AuthErrors.TokenResponseError(tokenResponse.ErrorDescription!)], StatusCodes.Status423Locked);
     }
 
     return Result<AuthResponse>.Success(new AuthResponse
@@ -109,17 +109,17 @@ public class AuthService : IAuthService
     }, StatusCodes.Status200OK);
   }
 
-  public async Task<Result<string>> RegisterAsync(RegisterRequest registerRequest)
+  public async Task<Result<string>> RegisterAsync(RegisterRequest request)
   {
-    if (await _userManager.FindByEmailAsync(registerRequest.Email) != null)
+    if (await _userManager.FindByEmailAsync(request.Email) != null)
     {
       return Result<string>.Failure([AuthErrors.AlreadyRegistered], StatusCodes.Status409Conflict);
     }
-    if (await _userManager.FindByNameAsync(registerRequest.UserName) != null)
+    if (await _userManager.FindByNameAsync(request.UserName) != null)
     {
       return Result<string>.Failure([AuthErrors.DuplicateUserName], StatusCodes.Status409Conflict);
     }
-    var validationResult = await _registerValidator.ValidateAsync(registerRequest);
+    var validationResult = await _registerValidator.ValidateAsync(request);
     if (!validationResult.IsValid)
     {
       var errors = validationResult.Errors
@@ -131,15 +131,15 @@ public class AuthService : IAuthService
 
     var user = new User 
     { 
-      UserName = registerRequest.UserName, 
-      Email = registerRequest.Email,
-      Gender = registerRequest.Gender,
-      FirstName = registerRequest.FirstName,
-      LastName = registerRequest.LastName,
-      PhoneNumber = registerRequest.PhoneNumber
+      UserName = request.UserName, 
+      Email = request.Email,
+      Gender = request.Gender,
+      FirstName = request.FirstName,
+      LastName = request.LastName,
+      PhoneNumber = request.PhoneNumber
     };
 
-    var result = await _userManager.CreateAsync(user, registerRequest.Password);
+    var result = await _userManager.CreateAsync(user, request.Password);
     if (!result.Succeeded)
     {
       var errors = result.Errors.Select(e => new Error(e.Code, e.Description)).ToList();
@@ -180,9 +180,9 @@ public class AuthService : IAuthService
     return Result<string>.Success(null, StatusCodes.Status200OK);
   }
 
-  public async Task<Result<string>> ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest)
+  public async Task<Result<string>> ResetPasswordAsync(ResetPasswordRequest request)
   {
-    var validationResult = await _resetPasswordValidator.ValidateAsync(resetPasswordRequest);
+    var validationResult = await _resetPasswordValidator.ValidateAsync(request);
     if (!validationResult.IsValid)
     {
       var errors = validationResult.Errors
@@ -191,13 +191,13 @@ public class AuthService : IAuthService
 
       return Result<string>.Failure(errors, StatusCodes.Status400BadRequest);
     }
-    var user = await _userManager.FindByEmailAsync(resetPasswordRequest.Email);
+    var user = await _userManager.FindByEmailAsync(request.Email);
     if (user == null)
     {
       return Result<string>.Failure([AuthErrors.UserNotFound], StatusCodes.Status404NotFound);
     }
 
-    var result = await _userManager.ResetPasswordAsync(user, resetPasswordRequest.AccessToken, resetPasswordRequest.Password);
+    var result = await _userManager.ResetPasswordAsync(user, request.AccessToken, request.Password);
     if (!result.Succeeded)
     {
       var errors = result.Errors.Select(e => new Error(e.Code, e.Description)).ToList();

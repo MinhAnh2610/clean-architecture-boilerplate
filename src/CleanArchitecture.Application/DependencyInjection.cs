@@ -34,6 +34,7 @@ public static class DependencyInjection
 
     #region User Validators
     services.AddScoped<IValidator<UpdateProfileRequest>, UpdateProfileValidator>();
+    services.AddScoped<IValidator<UserRequest>, UserValidator>();
     #endregion
 
     #region Role Validators
@@ -45,7 +46,7 @@ public static class DependencyInjection
 
     // Add services
     services.AddScoped<IAuthService, AuthService>();
-    services.AddScoped<IProfileService, ProfileService>();
+    //services.AddScoped<IProfileService, ProfileService>();
     services.AddScoped<IUserService, UserService>();
     services.AddScoped<IRoleService, RoleService>();
 

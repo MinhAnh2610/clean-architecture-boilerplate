@@ -49,7 +49,9 @@ public static class DependencyInjection
       options.Password.RequireDigit = false;
       options.Password.RequiredUniqueChars = 0;
 
-      options.Lockout.AllowedForNewUsers = false;
+      options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(30);
+      options.Lockout.MaxFailedAccessAttempts = 5;
+      options.Lockout.AllowedForNewUsers = true;
     })
       .AddEntityFrameworkStores<ApplicationDbContext>()
       .AddDefaultTokenProviders()

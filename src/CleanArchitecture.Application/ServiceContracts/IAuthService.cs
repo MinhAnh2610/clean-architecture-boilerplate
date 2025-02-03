@@ -4,8 +4,8 @@ namespace CleanArchitecture.Application.ServiceContracts;
 
 public interface IAuthService
 {
-  Task<Result<AuthResponse>> LoginAsync(LoginRequest loginRequest);
-  Task<Result<string>> RegisterAsync(RegisterRequest registerRequest);
-  Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest forgotPasswordRequest);
-  Task<Result<string>> ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest);
+  Task<Result<AuthResponse>> LoginAsync(LoginRequest request);
+  Task<Result<string>> RegisterAsync(RegisterRequest request);
+  Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest request);
+  Task<Result<string>> ResetPasswordAsync(ResetPasswordRequest request);
 }

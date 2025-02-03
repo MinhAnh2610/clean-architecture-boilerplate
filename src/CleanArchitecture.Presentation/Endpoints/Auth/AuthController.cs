@@ -20,6 +20,7 @@ public class AuthController : ICarterModule
       return result.Status switch
       {
         StatusCodes.Status400BadRequest => Results.BadRequest(ApiResponse<AuthResponse>.FailureResponse(result.Errors, "Input Validation Failed.")),
+        StatusCodes.Status423Locked => Results.BadRequest(ApiResponse<AuthResponse>.FailureResponse(result.Errors, "The Resource Being Requested Is Locked.")),
         _ => Results.StatusCode(StatusCodes.Status500InternalServerError),
       };
     })

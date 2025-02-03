@@ -35,13 +35,31 @@ public class ResourceOwnerPasswordValidator : IResourceOwnerPasswordValidator
       return;
     }
 
+    if (await _userManager.IsLockedOutAsync(user))
+    {
+      context.Result = new GrantValidationResult(
+        TokenRequestErrors.InvalidGrant, "Account is locked.");
+      return;
+    }
+
+    // Reset failed count on success
+    await _userManager.ResetAccessFailedCountAsync(user);
+
     // User is valid, create claims
     var claims = new List<Claim>
     {
       new Claim(JwtClaimTypes.Subject, user.Id),
       new Claim(JwtClaimTypes.Email, user.Email!),
       new Claim(JwtClaimTypes.Name, user.UserName!),
+      new Claim(JwtClaimTypes.PhoneNumber, user.PhoneNumber!),
+      new Claim(JwtClaimTypes.BirthDate, user.BirthDate.ToString()!),
+      new Claim(JwtClaimTypes.FamilyName, user.FirstName!),
+      new Claim(JwtClaimTypes.GivenName, user.LastName!),
+      new Claim(JwtClaimTypes.Gender, user.Gender.ToString())
     };
+
+    var roles = await _userManager.GetRolesAsync(user);
+    claims.AddRange(roles.Select(role => new Claim(JwtClaimTypes.Roles, role)));
 
     context.Result = new GrantValidationResult(user.Id, "password", claims);
   }
