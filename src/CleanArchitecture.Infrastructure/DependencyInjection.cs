@@ -9,7 +9,6 @@ using CleanArchitecture.Infrastructure.Repositories.UnitOfWork;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Net.Http.Headers;
 
 namespace CleanArchitecture.Infrastructure;
 
@@ -40,7 +39,7 @@ public static class DependencyInjection
       options.Configuration = configuration.GetConnectionString("Redis");
     });
 
-    //services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
+    services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
 
     // Register Unit of Work
     services.AddScoped<IUnitOfWork, UnitOfWork>();

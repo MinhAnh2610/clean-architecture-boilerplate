@@ -165,7 +165,7 @@ public class AuthService : IAuthService
     });
 
     if (tokenResponse.IsError)
-      return Result<AuthResponse>.Failure([AuthErrors.TokenResponseError(tokenResponse.Error!)], StatusCodes.Status400BadRequest);
+      return Result<AuthResponse>.Failure([AuthErrors.TokenResponseError(tokenResponse.ErrorDescription!)], StatusCodes.Status400BadRequest);
 
     user!.RefreshToken = tokenResponse.RefreshToken;
     user.RefreshTokenExpiration = DateTime.UtcNow + TimeSpan.FromDays(30);
