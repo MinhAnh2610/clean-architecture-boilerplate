@@ -98,6 +98,9 @@ public class AuthService : IAuthService
       return Result<AuthResponse>.Failure([AuthErrors.TokenResponseError(tokenResponse.ErrorDescription!)], StatusCodes.Status423Locked);
     }
 
+    user.RefreshToken = tokenResponse.RefreshToken;
+    user.RefreshTokenExpiration = DateTime.UtcNow + TimeSpan.FromDays(30);
+
     return Result<AuthResponse>.Success(new AuthResponse
     {
       AccessToken = tokenResponse.AccessToken!,

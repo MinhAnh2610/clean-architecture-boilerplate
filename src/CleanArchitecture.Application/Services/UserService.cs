@@ -41,6 +41,8 @@ public class UserService : IUserService
     var user = await _userManager.FindByNameAsync(request.UserName);
     if (user == null)
       return Result<string>.Failure([AuthErrors.UserNotFound], StatusCodes.Status404NotFound);
+    user.RefreshToken = null;
+    user.RefreshTokenExpiration = null;
 
     user.LockoutEnabled = true;
     user.LockoutEnd = DateTime.UtcNow.AddYears(100);
