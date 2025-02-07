@@ -1,0 +1,9 @@
+﻿//global using CleanArchitecture.Application.Data;
+global using CleanArchitecture.Application.DTOs;
+global using CleanArchitecture.Application.Exceptions;
+global using CleanArchitecture.Application.Common;
+global using CleanArchitecture.Domain.Entities;
+global using FluentValidation;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.EntityFrameworkCore;
+//global using CleanArchitecture.Application.Extensions;
