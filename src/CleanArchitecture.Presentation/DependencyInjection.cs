@@ -12,6 +12,9 @@ public static class DependencyInjection
 {
   public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration config)
   {
+    // Load .env file
+    DotNetEnv.Env.Load();
+
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     services.AddEndpointsApiExplorer();
     services.AddSwaggerGen(options =>
@@ -59,11 +62,21 @@ public static class DependencyInjection
       .AddUserStore<UserStore<User, Role, ApplicationDbContext>>()
       .AddRoleStore<RoleStore<Role, ApplicationDbContext>>();
 
+    services.AddCors(options =>
+    {
+      options.AddPolicy("AllowAll",
+          policy => policy
+              .AllowAnyOrigin()   // ✅ Allow any frontend
+              .AllowAnyMethod()   // ✅ Allow GET, POST, PUT, DELETE, etc.
+              .AllowAnyHeader()); // ✅ Allow any headers
+    });
+
     // Add authentication & authorization
     services.AddAuthentication(options =>
     {
       options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-      options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+      options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+      options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     })
       .AddCookie()
       .AddJwtBearer(options =>
@@ -73,13 +86,13 @@ public static class DependencyInjection
         {
           ValidateAudience = false,
         };
-      })
-      .AddGoogle(options =>
-      {
-        options.ClientId = config["Authentication:Google:ClientId"]!;
-        options.ClientSecret = config["Authentication:Google:ClientSecret"]!;
-        options.CallbackPath = "/signin-google";
       });
+      //.AddGoogle(options =>
+      //{
+      //  options.ClientId = config["Authentication:Google:ClientId"]!;
+      //  options.ClientSecret = config["Authentication:Google:ClientSecret"]!;
+      //  options.CallbackPath = "/signin-google";
+      //});
 
     services.AddAuthorization(options =>
     {
@@ -103,7 +116,7 @@ public static class DependencyInjection
     app.UseRouting();
 
     app.UseIdentityServer();
-
+    app.UseCors("AllowAll"); // ✅ Apply CORS globally
     app.UseAuthentication();
     app.UseAuthorization();
 

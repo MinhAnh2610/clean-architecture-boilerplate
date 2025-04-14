@@ -12,7 +12,10 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, string>, IAppl
 {
   public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
   {
+  }
 
+  public ApplicationDbContext()
+  {
   }
 
   protected override void OnModelCreating(ModelBuilder builder)

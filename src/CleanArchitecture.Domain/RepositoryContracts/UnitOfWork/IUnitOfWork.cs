@@ -1,6 +1,10 @@
-﻿namespace CleanArchitecture.Domain.RepositoryContracts.UnitOfWork;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+
+namespace CleanArchitecture.Domain.RepositoryContracts.UnitOfWork;
 
 public interface IUnitOfWork : IDisposable
 {
-  Task<int> CompleteAsync();
+  Task<IDbContextTransaction> BeginTransactionAsync();
+  Task RollBackAsync();
+  Task<bool> CompleteAsync();
 }

@@ -31,6 +31,8 @@ public static class DependencyInjection
     services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
     {
       options.AddInterceptors(serviceProvider.GetServices<ISaveChangesInterceptor>());
+      options.EnableSensitiveDataLogging();
+
       //options.UseNpgsql(configuration.GetConnectionString("Database"));
       options.UseInMemoryDatabase("Database");
     });

@@ -1,6 +1,8 @@
-﻿namespace CleanArchitecture.Application.ServiceContracts;
+﻿using CleanArchitecture.Application.DTOs.Email;
+
+namespace CleanArchitecture.Application.ServiceContracts;
 
 public interface IEmailService
 {
-  Task<Result<string>> SendEmailAsync(string to, string subject, string body);
+  Task SendEmailAsync(EmailMessage message);
 }
